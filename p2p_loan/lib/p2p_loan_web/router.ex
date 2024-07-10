@@ -18,7 +18,9 @@ defmodule P2pLoanWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    resources "/wallets", WalletController
+    resources "/wallets", WalletController, only: [:create, :delete, :show, :index, :new]
+    put "/wallets/:id/topup", WalletController, :topup
+    get "/wallets/:id/editTopUp", WalletController, :editTopup
   end
 
   # Other scopes may use custom stacks.

@@ -1,0 +1,8 @@
+<.header>
+  TopUp Wallet <%= @wallet.id %>
+  <:subtitle>Add money to the wallet.</:subtitle>
+</.header>
+
+<.topup_form changeset={@changeset} action={~p"/wallets/#{@wallet}/topup"} />
+
+<.back navigate={~p"/wallets"}>Back to wallets</.back>

@@ -15,7 +15,7 @@
     <div class="sr-only">
       <.link navigate={~p"/wallets/#{wallet}"}>Show</.link>
     </div>
-    <.link navigate={~p"/wallets/#{wallet}/edit"}>Edit</.link>
+    <.link navigate={~p"/wallets/#{wallet}/editTopUp"}>TopUp</.link>
   </:action>
   <:action :let={wallet}>
     <.link href={~p"/wallets/#{wallet}"} method="delete" data-confirm="Are you sure?">

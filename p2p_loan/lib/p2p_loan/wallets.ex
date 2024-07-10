@@ -73,6 +73,14 @@ defmodule P2pLoan.Wallets do
     |> Repo.update()
   end
 
+  def increase_amount(%Wallet{} = wallet, increase)do
+    {1, [%Wallet{amount: amount}]} =
+      from(w in Wallet, where: w.id == ^wallet.id, select: [:amount])
+      |> Repo.update_all(inc: [amount: increase])
+
+      put_in(wallet.amount, amount)
+  end
+
   @doc """
   Deletes a wallet.
 

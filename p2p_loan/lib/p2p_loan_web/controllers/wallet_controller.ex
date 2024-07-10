@@ -37,6 +37,12 @@ defmodule P2pLoanWeb.WalletController do
     render(conn, :edit, wallet: wallet, changeset: changeset)
   end
 
+  def editTopup(conn, %{"id" => id}) do
+    wallet = Wallets.get_wallet!(id)
+    changeset = Wallets.change_wallet(wallet)
+    render(conn, :topup, wallet: wallet, changeset: changeset)
+  end
+
   def update(conn, %{"id" => id, "wallet" => wallet_params}) do
     wallet = Wallets.get_wallet!(id)
 
@@ -58,5 +64,13 @@ defmodule P2pLoanWeb.WalletController do
     conn
     |> put_flash(:info, "Wallet deleted successfully.")
     |> redirect(to: ~p"/wallets")
+  end
+
+  def topup(conn, %{"id" => id, "wallet" => %{"increase" => increase}})do
+    wallet = Wallets.get_wallet!(id)
+    |> Wallets.increase_amount(Decimal.new(increase))
+    conn
+        |> put_flash(:info, "Wallet topped up successfully.")
+        |> redirect(to: ~p"/wallets/#{wallet}")
   end
 end
