@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: p2ploandb
+    environment:
+      POSTGRES_USER: p2ploan
+      POSTGRES_PASSWORD: p2ploan_pwd
+      POSTGRES_DB: p2ploan
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
