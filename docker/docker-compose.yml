@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: p2ploan
       POSTGRES_PASSWORD: p2ploan_pwd
-      POSTGRES_DB: p2ploan
+      POSTGRES_DB: p2ploandb
     ports:
       - "5432:5432"
     volumes:

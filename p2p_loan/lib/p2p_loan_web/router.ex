@@ -18,6 +18,7 @@ defmodule P2pLoanWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    resources "/wallets", WalletController
   end
 
   # Other scopes may use custom stacks.
