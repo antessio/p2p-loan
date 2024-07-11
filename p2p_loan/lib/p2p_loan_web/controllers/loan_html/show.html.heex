@@ -1,0 +1,19 @@
+<.header>
+  Loan <%= @loan.id %>
+  <:subtitle>This is a loan record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/loans/#{@loan}/edit"}>
+      <.button>Edit loan</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Owner"><%= @loan.owner_id %></:item>
+  <:item title="Amount"><%= @loan.amount %></:item>
+  <:item title="Currency"><%= @loan.currency %></:item>
+  <:item title="Interest rate"><%= @loan.interest_rate %></:item>
+  <:item title="Status"><%= @loan.status %></:item>
+</.list>
+
+<.back navigate={~p"/loans"}>Back to loans</.back>

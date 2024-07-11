@@ -19,6 +19,7 @@ defmodule P2pLoanWeb.Router do
 
     get "/", PageController, :home
     resources "/wallets", WalletController, only: [:create, :delete, :show, :index, :new]
+    resources "/loans", LoanController
     put "/wallets/:id/topup", WalletController, :topup
     get "/wallets/:id/editTopUp", WalletController, :editTopup
   end
