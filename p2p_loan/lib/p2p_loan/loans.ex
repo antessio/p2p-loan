@@ -73,6 +73,12 @@ defmodule P2pLoan.Loans do
 
   end
 
+  def approve(%Loan{} = loan, interest_rate)do
+      loan
+      |> Loan.changeset(%{interest_rate: interest_rate, status: :approved})
+      |> Repo.update()
+  end
+
   @doc """
   Updates a loan.
 

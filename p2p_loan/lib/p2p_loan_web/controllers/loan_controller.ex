@@ -40,7 +40,7 @@ defmodule P2pLoanWeb.LoanController do
   def update(conn, %{"id" => id, "loan" => loan_params}) do
     loan = Loans.get_loan!(id)
 
-    case Loans.update_loan(loan, loan_params) do
+    case Loans.approve(loan, Decimal.new(loan_params["interest_rate"])) do
       {:ok, loan} ->
         conn
         |> put_flash(:info, "Loan updated successfully.")

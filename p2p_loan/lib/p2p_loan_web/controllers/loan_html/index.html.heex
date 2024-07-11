@@ -17,11 +17,8 @@
     <div class="sr-only">
       <.link navigate={~p"/loans/#{loan}"}>Show</.link>
     </div>
-    <.link navigate={~p"/loans/#{loan}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={loan}>
-    <.link href={~p"/loans/#{loan}"} method="delete" data-confirm="Are you sure?">
-      Delete
-    </.link>
+    <%= if loan.status == :requested do %>
+      <.link navigate={~p"/loans/#{loan}/edit"}>Approve</.link>
+    <% end %>
   </:action>
 </.table>
