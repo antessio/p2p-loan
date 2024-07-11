@@ -1,0 +1,17 @@
+<.header>
+  Contribution <%= @contribution.id %>
+  <:subtitle>This is a contribution record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/contributions/#{@contribution}/edit"}>
+      <.button>Edit contribution</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Contributor"><%= @contribution.contributor_id %></:item>
+  <:item title="Amount"><%= @contribution.amount %></:item>
+  <:item title="Currency"><%= @contribution.currency %></:item>
+</.list>
+
+<.back navigate={~p"/contributions"}>Back to contributions</.back>

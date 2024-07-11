@@ -28,4 +28,20 @@ defmodule P2pLoan.LoansFixtures do
 
     loan
   end
+
+  @doc """
+  Generate a contribution.
+  """
+  def contribution_fixture(attrs \\ %{}) do
+    {:ok, contribution} =
+      attrs
+      |> Enum.into(%{
+        amount: "120.5",
+        contributor_id: "7488a646-e31f-11e4-aace-600308960662",
+        currency: "some currency"
+      })
+      |> P2pLoan.Loans.create_contribution()
+
+    contribution
+  end
 end

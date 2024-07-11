@@ -64,4 +64,62 @@ defmodule P2pLoan.LoansTest do
       assert %Ecto.Changeset{} = Loans.change_loan(loan)
     end
   end
+
+  describe "contributions" do
+    alias P2pLoan.Loans.Contribution
+
+    import P2pLoan.LoansFixtures
+
+    @invalid_attrs %{currency: nil, contributor_id: nil, amount: nil}
+
+    test "list_contributions/0 returns all contributions" do
+      contribution = contribution_fixture()
+      assert Loans.list_contributions() == [contribution]
+    end
+
+    test "get_contribution!/1 returns the contribution with given id" do
+      contribution = contribution_fixture()
+      assert Loans.get_contribution!(contribution.id) == contribution
+    end
+
+    test "create_contribution/1 with valid data creates a contribution" do
+      valid_attrs = %{currency: "some currency", contributor_id: "7488a646-e31f-11e4-aace-600308960662", amount: "120.5"}
+
+      assert {:ok, %Contribution{} = contribution} = Loans.create_contribution(valid_attrs)
+      assert contribution.currency == "some currency"
+      assert contribution.contributor_id == "7488a646-e31f-11e4-aace-600308960662"
+      assert contribution.amount == Decimal.new("120.5")
+    end
+
+    test "create_contribution/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Loans.create_contribution(@invalid_attrs)
+    end
+
+    test "update_contribution/2 with valid data updates the contribution" do
+      contribution = contribution_fixture()
+      update_attrs = %{currency: "some updated currency", contributor_id: "7488a646-e31f-11e4-aace-600308960668", amount: "456.7"}
+
+      assert {:ok, %Contribution{} = contribution} = Loans.update_contribution(contribution, update_attrs)
+      assert contribution.currency == "some updated currency"
+      assert contribution.contributor_id == "7488a646-e31f-11e4-aace-600308960668"
+      assert contribution.amount == Decimal.new("456.7")
+    end
+
+    test "update_contribution/2 with invalid data returns error changeset" do
+      contribution = contribution_fixture()
+      assert {:error, %Ecto.Changeset{}} = Loans.update_contribution(contribution, @invalid_attrs)
+      assert contribution == Loans.get_contribution!(contribution.id)
+    end
+
+    test "delete_contribution/1 deletes the contribution" do
+      contribution = contribution_fixture()
+      assert {:ok, %Contribution{}} = Loans.delete_contribution(contribution)
+      assert_raise Ecto.NoResultsError, fn -> Loans.get_contribution!(contribution.id) end
+    end
+
+    test "change_contribution/1 returns a contribution changeset" do
+      contribution = contribution_fixture()
+      assert %Ecto.Changeset{} = Loans.change_contribution(contribution)
+    end
+  end
 end

@@ -1,0 +1,8 @@
+<.header>
+  Contribute to loan <%= @loan.id %>
+  <:subtitle>Use this form to add a new contributor to the loan.</:subtitle>
+</.header>
+
+<.contributor_form changeset={@changeset} action={~p"/loans/#{@loan}/contributors"} />
+
+<.back navigate={~p"/loans"}>Back to loans</.back>

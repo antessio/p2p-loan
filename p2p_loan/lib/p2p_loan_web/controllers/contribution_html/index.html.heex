@@ -1,0 +1,25 @@
+<.header>
+  Listing Contributions
+  <:actions>
+    <.link href={~p"/contributions/new"}>
+      <.button>New Contribution</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="contributions" rows={@contributions} row_click={&JS.navigate(~p"/contributions/#{&1}")}>
+  <:col :let={contribution} label="Contributor"><%= contribution.contributor_id %></:col>
+  <:col :let={contribution} label="Amount"><%= contribution.amount %></:col>
+  <:col :let={contribution} label="Currency"><%= contribution.currency %></:col>
+  <:action :let={contribution}>
+    <div class="sr-only">
+      <.link navigate={~p"/contributions/#{contribution}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/contributions/#{contribution}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={contribution}>
+    <.link href={~p"/contributions/#{contribution}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>

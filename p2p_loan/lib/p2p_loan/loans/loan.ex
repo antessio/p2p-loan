@@ -9,6 +9,8 @@ defmodule P2pLoan.Loans.Loan do
     field :amount, :decimal
     field :interest_rate, :decimal
 
+    has_many :contributions, P2pLoan.Loans.Contribution
+
     timestamps(type: :utc_datetime)
   end
 

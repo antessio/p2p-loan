@@ -2,9 +2,16 @@
   Loan <%= @loan.id %>
   <:subtitle>This is a loan record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/loans/#{@loan}/edit"}>
-      <.button>Edit loan</.button>
+    <%= if @loan.status == :requested do %>
+      <.link href={~p"/loans/#{@loan}/edit"}>
+        <.button>Approve</.button>
+      </.link>
+    <% end %>
+    <%= if @loan.status == :approved do %>
+    <.link href={~p"/loans/#{@loan}/add_contributor"}>
+      <.button>Add contributor</.button>
     </.link>
+    <% end %>
   </:actions>
 </.header>
 
@@ -15,5 +22,16 @@
   <:item title="Interest rate"><%= @loan.interest_rate %></:item>
   <:item title="Status"><%= @loan.status %></:item>
 </.list>
+<.table id="contributions" rows={@loan.contributions}>
+  <:col :let={contribution} label="Contributor"><%= contribution.contributor_id %></:col>
+  <:col :let={contribution} label="Amount"><%= contribution.amount %></:col>
+  <:col :let={contribution} label="Currency"><%= contribution.currency %></:col>
+
+  <:action :let={contribution}>
+    <.link href={~p"/loans/#{@loan}/contributors/#{contribution}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>
 
 <.back navigate={~p"/loans"}>Back to loans</.back>
