@@ -179,10 +179,11 @@ defmodule P2pLoan.Loans do
     Repo.transaction(fn ->
       # TODO: event based
       Wallets.charge(wallet, contribution.amount)
-      total_contributions = loan.contributions
-      |> Enum.map(& &1.amount)
-      |> Enum.reduce(contribution.amount, &Decimal.add/2)
-      remaining_loan_amount = Decimal.to_float(Decimal.sub(loan.amount, total_contributions))
+
+      remaining_loan_amount = get_remaining_loan_amonut(loan)
+      |> Decimal.add(contribution.amount)
+      |> Decimal.to_float
+
       loan_status = case remaining_loan_amount do
         t when t >= 0 -> :issued
         t when t < 0 -> loan.status
@@ -197,6 +198,13 @@ defmodule P2pLoan.Loans do
       |> Repo.update
     end)
 
+  end
+
+  def get_remaining_loan_amonut(%Loan{} = loan) do
+    total_contributions = loan.contributions
+      |> Enum.map(& &1.amount)
+      |> Enum.reduce(Decimal.new(0), &Decimal.add/2)
+    Decimal.sub(loan.amount, total_contributions)
   end
 
   @doc """
