@@ -19,6 +19,7 @@ defmodule P2pLoanWeb.Router do
 
     get "/", PageController, :home
     resources "/wallets", WalletController, only: [:create, :delete, :show, :index, :new]
+    get "/wallets/:owner_id/my", WalletController, :show_my
     resources "/loans", LoanController
     put "/loans/:id/contributors", LoanController, :add_contributor
     get "/loans/:id/add_contributor", LoanController, :get_add_contributor

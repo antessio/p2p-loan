@@ -9,7 +9,7 @@ defmodule P2pLoan.Loans do
 
   alias P2pLoan.Loans.Loan
   alias P2pLoan.Loans.Contribution
-
+  alias P2pLoan.Wallets
 
   defmodule P2pLoan.LoanRequest do
     @enforce_keys [:owner_id, :amount, :currency]
@@ -72,13 +72,13 @@ defmodule P2pLoan.Loans do
   end
 
   def request_loan(owner_id, currency, amount) do
-    ## field :status, Ecto.Enum, values: [:requested, :verification, :approved, :refused, :expired]
     %Loan{owner_id: owner_id, currency: currency, amount: amount, status: :requested}
     |> Repo.insert()
 
   end
 
   def approve(%Loan{} = loan, interest_rate)do
+      # TODO: error in case the loan is not requested
       loan
       |> Loan.changeset(%{interest_rate: interest_rate, status: :approved})
       |> Repo.update()
@@ -173,12 +173,30 @@ defmodule P2pLoan.Loans do
 
   """
   def create_contribution(%Contribution{} = contribution, %Loan{} = loan) do
-    loan
-    |> Ecto.build_assoc(:contributions, contribution)
-    |> Repo.insert()
-    # contribution
-    # |> Ecto.build_assoc(:loan, loan)
-    # |> Repo.insert()
+    # TODO: error in case the loan is not approved
+    wallet = Wallets.get_wallet_by_owner_id(contribution.contributor_id)
+    # TODO: error in case the contributor wallet doesn't have enough money
+    Repo.transaction(fn ->
+      # TODO: event based
+      Wallets.charge(wallet, contribution.amount)
+      total_contributions = loan.contributions
+      |> Enum.map(& &1.amount)
+      |> Enum.reduce(contribution.amount, &Decimal.add/2)
+      remaining_loan_amount = Decimal.to_float(Decimal.sub(loan.amount, total_contributions))
+      loan_status = case remaining_loan_amount do
+        t when t >= 0 -> :issued
+        t when t < 0 -> loan.status
+      end
+
+      loan
+      |> Ecto.build_assoc(:contributions, contribution)
+      |> Repo.insert()
+
+      loan
+      |> Loan.changeset(%{status: loan_status})
+      |> Repo.update
+    end)
+
   end
 
   @doc """

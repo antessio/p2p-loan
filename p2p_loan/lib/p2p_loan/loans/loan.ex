@@ -3,7 +3,7 @@ defmodule P2pLoan.Loans.Loan do
   import Ecto.Changeset
 
   schema "loans" do
-    field :status, Ecto.Enum, values: [:requested, :verification, :approved, :refused, :expired]
+    field :status, Ecto.Enum, values: [:requested, :verification, :approved, :issued, :refused, :expired]
     field :currency, :string
     field :owner_id, Ecto.UUID
     field :amount, :decimal

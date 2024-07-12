@@ -6,9 +6,9 @@ Wallet
 - owner id
 - amount
 - currency
-- **findWalletByOwnerId**
-- **topUpWallet**
-- **chargeWallet**
+- **~~findWalletByOwnerId~~**
+- **~~topUpWallet~~**
+- **~~chargeWallet~~**
 
 Loan
 - status: REQUESTED, VERIFICATION, APPROVED, REFUSED, EXPIRED
@@ -18,10 +18,10 @@ Loan
 - Contributions
     - amount
     - contributor id
-- **findLoansRequested**
+- **~~findLoansRequested~~**
 - **findContributionsByContributorId**
-- **contribute**
-- **refuseContribution**
+- **~~contribute~~**
+- **~~refuseContribution~~**
 
 Interested charges
 - debtor id
@@ -34,6 +34,10 @@ Interested charges
 - **findByDueDate**
 
 
+## Roles
+
+Admin: can admin loans and wallets
+User: can see only loans that requested or loans where it contributed, can see its wallet
 
 
 ## Loans page
@@ -54,13 +58,32 @@ Every month/day/hour/minute after its approval, the system will charge the inter
 When the loan owner pays the interest charge, the money is transferred to the contributor's wallet. 
 If the loan owner doesn’t have enough money to pay all the contributors, then the loan status is updated to EXPIRED.
 
-## Contributions page
-Where loan contributors can see their contributions and the loan status. 
+Admin: 
+- ~~get all loans~~
+- ~~approve a loan~~
+- get interest charges
+- get expired loans
+
+User: 
+- get my loans
+- get loans where I contributed
+- ~~contribute to a loan~~
+- ~~request a loan~~
 
 ## Wallet 
 
 It simply shows the owner and the amount. Potentially also the transactions, but this would make it more complicated. 
 
 After implementing the core logic this could be experimented with using CQRS and event-sourcing. 
+
+User: 
+- get my wallet
+
+Admin:
+- ~~get all wallets~~
+- ~~create a wallet~~
+- ~~top-up a wallet~~
+
+
 
 

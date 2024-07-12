@@ -73,12 +73,22 @@ defmodule P2pLoan.Wallets do
     |> Repo.update()
   end
 
-  def increase_amount(%Wallet{} = wallet, increase)do
-    {1, [%Wallet{amount: amount}]} =
-      from(w in Wallet, where: w.id == ^wallet.id, select: [:amount])
-      |> Repo.update_all(inc: [amount: increase])
+  def top_up(%Wallet{} = wallet, top_up_amount)do
+    wallet
+    |> Wallet.changeset(%{amount: Decimal.add(wallet.amount, top_up_amount)})
+    |> Repo.update
+  end
 
-      put_in(wallet.amount, amount)
+  def charge(%Wallet{} = wallet, charge_amount)do
+    wallet
+    |> Wallet.changeset(%{amount: Decimal.sub(wallet.amount, charge_amount)})
+    |> Repo.update
+  end
+
+  def get_wallet_by_owner_id(owner_id)do
+    from(w in Wallet, where: w.owner_id == ^owner_id)
+    |> Repo.one
+
   end
 
   @doc """
