@@ -122,4 +122,66 @@ defmodule P2pLoan.LoansTest do
       assert %Ecto.Changeset{} = Loans.change_contribution(contribution)
     end
   end
+
+  describe "interest_chargges" do
+    alias P2pLoan.Loans.InterestCharge
+
+    import P2pLoan.LoansFixtures
+
+    @invalid_attrs %{status: nil, debtor_id: nil, loan_id: nil, amount: nil, due_date: nil}
+
+    test "list_interest_chargges/0 returns all interest_chargges" do
+      interest_charge = interest_charge_fixture()
+      assert Loans.list_interest_chargges() == [interest_charge]
+    end
+
+    test "get_interest_charge!/1 returns the interest_charge with given id" do
+      interest_charge = interest_charge_fixture()
+      assert Loans.get_interest_charge!(interest_charge.id) == interest_charge
+    end
+
+    test "create_interest_charge/1 with valid data creates a interest_charge" do
+      valid_attrs = %{status: "some status", debtor_id: "7488a646-e31f-11e4-aace-600308960662", loan_id: "7488a646-e31f-11e4-aace-600308960662", amount: "120.5", due_date: ~U[2024-07-14 13:16:00Z]}
+
+      assert {:ok, %InterestCharge{} = interest_charge} = Loans.create_interest_charge(valid_attrs)
+      assert interest_charge.status == "some status"
+      assert interest_charge.debtor_id == "7488a646-e31f-11e4-aace-600308960662"
+      assert interest_charge.loan_id == "7488a646-e31f-11e4-aace-600308960662"
+      assert interest_charge.amount == Decimal.new("120.5")
+      assert interest_charge.due_date == ~U[2024-07-14 13:16:00Z]
+    end
+
+    test "create_interest_charge/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Loans.create_interest_charge(@invalid_attrs)
+    end
+
+    test "update_interest_charge/2 with valid data updates the interest_charge" do
+      interest_charge = interest_charge_fixture()
+      update_attrs = %{status: "some updated status", debtor_id: "7488a646-e31f-11e4-aace-600308960668", loan_id: "7488a646-e31f-11e4-aace-600308960668", amount: "456.7", due_date: ~U[2024-07-15 13:16:00Z]}
+
+      assert {:ok, %InterestCharge{} = interest_charge} = Loans.update_interest_charge(interest_charge, update_attrs)
+      assert interest_charge.status == "some updated status"
+      assert interest_charge.debtor_id == "7488a646-e31f-11e4-aace-600308960668"
+      assert interest_charge.loan_id == "7488a646-e31f-11e4-aace-600308960668"
+      assert interest_charge.amount == Decimal.new("456.7")
+      assert interest_charge.due_date == ~U[2024-07-15 13:16:00Z]
+    end
+
+    test "update_interest_charge/2 with invalid data returns error changeset" do
+      interest_charge = interest_charge_fixture()
+      assert {:error, %Ecto.Changeset{}} = Loans.update_interest_charge(interest_charge, @invalid_attrs)
+      assert interest_charge == Loans.get_interest_charge!(interest_charge.id)
+    end
+
+    test "delete_interest_charge/1 deletes the interest_charge" do
+      interest_charge = interest_charge_fixture()
+      assert {:ok, %InterestCharge{}} = Loans.delete_interest_charge(interest_charge)
+      assert_raise Ecto.NoResultsError, fn -> Loans.get_interest_charge!(interest_charge.id) end
+    end
+
+    test "change_interest_charge/1 returns a interest_charge changeset" do
+      interest_charge = interest_charge_fixture()
+      assert %Ecto.Changeset{} = Loans.change_interest_charge(interest_charge)
+    end
+  end
 end

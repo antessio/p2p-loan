@@ -4,6 +4,8 @@ defmodule P2pLoanWeb.LoanController do
   alias P2pLoan.Loans
   alias P2pLoan.Loans.Loan
   alias P2pLoan.Loans.Contribution
+  alias P2pLoan.Loans.LoanRequest
+
 
   def index(conn, _params) do
     loans = Loans.list_loans()
@@ -16,7 +18,10 @@ defmodule P2pLoanWeb.LoanController do
   end
 
   def create(conn, %{"loan" => loan_params}) do
-    case Loans.request_loan(loan_params["owner_id"], loan_params["currency"], Decimal.new(loan_params["amount"])) do
+    {duration, _} = Integer.parse(loan_params["duration"])
+    amount = Decimal.new(loan_params["amount"])
+    loan_request = %LoanRequest{owner_id: loan_params["owner_id"], currency: loan_params["currency"], amount: amount, duration: duration}
+    case Loans.request_loan(loan_request) do
       {:ok, loan} ->
         conn
         |> put_flash(:info, "Loan created successfully.")

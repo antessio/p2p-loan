@@ -1,0 +1,45 @@
+<.header>
+  Listing Interest chargges
+  <:actions>
+    <.link patch={~p"/interest_chargges/new"}>
+      <.button>New Interest charge</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="interest_chargges"
+  rows={@streams.interest_chargges}
+  row_click={fn {_id, interest_charge} -> JS.navigate(~p"/interest_chargges/#{interest_charge}") end}
+>
+  <:col :let={{_id, interest_charge}} label="Debtor"><%= interest_charge.debtor_id %></:col>
+  <:col :let={{_id, interest_charge}} label="Loan"><%= interest_charge.loan_id %></:col>
+  <:col :let={{_id, interest_charge}} label="Amount"><%= interest_charge.amount %></:col>
+  <:col :let={{_id, interest_charge}} label="Status"><%= interest_charge.status %></:col>
+  <:col :let={{_id, interest_charge}} label="Due date"><%= interest_charge.due_date %></:col>
+  <:action :let={{_id, interest_charge}}>
+    <div class="sr-only">
+      <.link navigate={~p"/interest_chargges/#{interest_charge}"}>Show</.link>
+    </div>
+    <.link patch={~p"/interest_chargges/#{interest_charge}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, interest_charge}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: interest_charge.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="interest_charge-modal" show on_cancel={JS.patch(~p"/interest_chargges")}>
+  <.live_component
+    module={P2pLoanWeb.InterestChargeLive.FormComponent}
+    id={@interest_charge.id || :new}
+    title={@page_title}
+    action={@live_action}
+    interest_charge={@interest_charge}
+    patch={~p"/interest_chargges"}
+  />
+</.modal>

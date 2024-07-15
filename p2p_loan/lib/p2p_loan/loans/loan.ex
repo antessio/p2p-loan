@@ -10,14 +10,16 @@ defmodule P2pLoan.Loans.Loan do
     field :interest_rate, :decimal
 
     has_many :contributions, P2pLoan.Loans.Contribution
+    has_many :interest_charges, P2pLoan.Loans.InterestCharge
 
+    field :duration, :integer
     timestamps(type: :utc_datetime)
   end
 
   @doc false
   def changeset(loan, attrs) do
     loan
-    |> cast(attrs, [:owner_id, :amount, :currency, :interest_rate, :status])
-    |> validate_required([:owner_id, :amount, :currency, :status])
+    |> cast(attrs, [:owner_id, :amount, :currency, :interest_rate, :status, :duration])
+    |> validate_required([:owner_id, :amount, :currency, :status, :duration])
   end
 end

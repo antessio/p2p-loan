@@ -10,10 +10,12 @@ defmodule P2pLoan.Loans do
   alias P2pLoan.Loans.Loan
   alias P2pLoan.Loans.Contribution
   alias P2pLoan.Wallets
+  alias P2pLoan.Loans.InterestCharge
 
-  defmodule P2pLoan.LoanRequest do
-    @enforce_keys [:owner_id, :amount, :currency]
-    defstruct [:owner_id, :amount, :currency]
+
+  defmodule LoanRequest do
+    @enforce_keys [:owner_id, :amount, :currency, :duration]
+    defstruct [:owner_id, :amount, :currency, :duration]
   end
 
   @doc """
@@ -71,8 +73,13 @@ defmodule P2pLoan.Loans do
     |> Repo.insert()
   end
 
-  def request_loan(owner_id, currency, amount) do
-    %Loan{owner_id: owner_id, currency: currency, amount: amount, status: :requested}
+  # def request_loan(owner_id, currency, amount) do
+  #   %Loan{owner_id: owner_id, currency: currency, amount: amount, status: :requested}
+  #   |> Repo.insert()
+
+  # end
+  def request_loan(%LoanRequest{} = loan_request) do
+    %Loan{owner_id: loan_request.owner_id, currency: loan_request.currency, amount: loan_request.amount, status: :requested, duration: loan_request.duration}
     |> Repo.insert()
 
   end
@@ -253,4 +260,106 @@ defmodule P2pLoan.Loans do
   def change_contribution(%Contribution{} = contribution, attrs \\ %{}) do
     Contribution.changeset(contribution, attrs)
   end
+
+
+
+  @doc """
+  Returns the list of interest_chargges.
+
+  ## Examples
+
+      iex> list_interest_chargges()
+      [%InterestCharge{}, ...]
+
+  """
+  def list_interest_chargges do
+    Repo.all(InterestCharge)
+  end
+
+  @doc """
+  Gets a single interest_charge.
+
+  Raises `Ecto.NoResultsError` if the Interest charge does not exist.
+
+  ## Examples
+
+      iex> get_interest_charge!(123)
+      %InterestCharge{}
+
+      iex> get_interest_charge!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_interest_charge!(id), do: Repo.get!(InterestCharge, id)
+
+  @doc """
+  Creates a interest_charge.
+
+  ## Examples
+
+      iex> create_interest_charge(%{field: value})
+      {:ok, %InterestCharge{}}
+
+      iex> create_interest_charge(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_interest_charge(attrs \\ %{}) do
+    %InterestCharge{}
+    |> InterestCharge.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a interest_charge.
+
+  ## Examples
+
+      iex> update_interest_charge(interest_charge, %{field: new_value})
+      {:ok, %InterestCharge{}}
+
+      iex> update_interest_charge(interest_charge, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_interest_charge(%InterestCharge{} = interest_charge, attrs) do
+    interest_charge
+    |> InterestCharge.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a interest_charge.
+
+  ## Examples
+
+      iex> delete_interest_charge(interest_charge)
+      {:ok, %InterestCharge{}}
+
+      iex> delete_interest_charge(interest_charge)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_interest_charge(%InterestCharge{} = interest_charge) do
+    Repo.delete(interest_charge)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking interest_charge changes.
+
+  ## Examples
+
+      iex> change_interest_charge(interest_charge)
+      %Ecto.Changeset{data: %InterestCharge{}}
+
+  """
+  def change_interest_charge(%InterestCharge{} = interest_charge, attrs \\ %{}) do
+    InterestCharge.changeset(interest_charge, attrs)
+  end
+
+
+  # def create_interest_charges(%Loan{} = loan) do
+  #   loan.contributions
+  #   |>
+  # end
 end

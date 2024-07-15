@@ -44,4 +44,22 @@ defmodule P2pLoan.LoansFixtures do
 
     contribution
   end
+
+  @doc """
+  Generate a interest_charge.
+  """
+  def interest_charge_fixture(attrs \\ %{}) do
+    {:ok, interest_charge} =
+      attrs
+      |> Enum.into(%{
+        amount: "120.5",
+        debtor_id: "7488a646-e31f-11e4-aace-600308960662",
+        due_date: ~U[2024-07-14 13:16:00Z],
+        loan_id: "7488a646-e31f-11e4-aace-600308960662",
+        status: "some status"
+      })
+      |> P2pLoan.Loans.create_interest_charge()
+
+    interest_charge
+  end
 end
