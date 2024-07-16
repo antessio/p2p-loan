@@ -2,6 +2,8 @@ defmodule P2pLoan.Loans.Contribution do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
   schema "contributions" do
     field :currency, :string
     field :contributor_id, Ecto.UUID

@@ -2,9 +2,10 @@ defmodule P2pLoan.Repo.Migrations.CreateInterestCharges do
   use Ecto.Migration
 
   def change do
-    create table(:interest_charges) do
+    create table(:interest_charges, primary_key: false) do
+      add :id, :binary_id, primary_key: true
       add :debtor_id, :uuid
-      add :loan_id, references(:loans, on_delete: :delete_all)
+      add :loan_id, references(:loans, on_delete: :delete_all, type: :uuid)
       add :amount, :decimal
       add :status, :string
       add :due_date, :utc_datetime
