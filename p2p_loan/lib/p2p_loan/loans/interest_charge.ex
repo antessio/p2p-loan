@@ -3,7 +3,7 @@ defmodule P2pLoan.Loans.InterestCharge do
   import Ecto.Changeset
 
   schema "interest_charges" do
-    field :status, :string
+    field :status, Ecto.Enum, values: [:paid, :expired, :to_pay]
     field :debtor_id, Ecto.UUID
     field :amount, :decimal
     field :due_date, :utc_datetime

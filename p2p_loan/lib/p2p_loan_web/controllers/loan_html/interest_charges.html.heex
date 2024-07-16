@@ -1,0 +1,13 @@
+<.header>
+  Loan <%= @loan_id %>
+  <:subtitle>This is a loan record from your database.</:subtitle>
+</.header>
+<.table id="interest_charges" rows={@interest_charges}>
+  <:col :let={interest_charge} label="Debtor"><%= interest_charge.debtor_id %></:col>
+  <:col :let={interest_charge} label="Status"><%= interest_charge.status %></:col>
+  <:col :let={interest_charge} label="Amount"><%= interest_charge.amount %></:col>
+  <:col :let={interest_charge} label="Due date"><%= interest_charge.due_date %></:col>
+
+</.table>
+
+<.back navigate={~p"/loans"}>Back to loans</.back>

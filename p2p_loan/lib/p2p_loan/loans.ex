@@ -10,6 +10,7 @@ defmodule P2pLoan.Loans do
   alias P2pLoan.Loans.Loan
   alias P2pLoan.Loans.Contribution
   alias P2pLoan.Wallets
+  alias P2pLoan.Wallets.Wallet
   alias P2pLoan.Loans.InterestCharge
 
 
@@ -180,34 +181,48 @@ defmodule P2pLoan.Loans do
 
   """
   def create_contribution(%Contribution{} = contribution, %Loan{} = loan) do
-    # TODO: error in case the loan is not approved
+
     wallet = Wallets.get_wallet_by_owner_id(contribution.contributor_id)
-    # TODO: error in case the contributor wallet doesn't have enough money
-    Repo.transaction(fn ->
-      # TODO: event based
-      Wallets.charge(wallet, contribution.amount)
+    cond do
+      wallet.amount < contribution.amount -> {:error, "#{wallet.owner_id} has not enough money"}
+      true -> {:ok, add_contribution(wallet, loan, contribution)}
+    end
 
-      remaining_loan_amount = get_remaining_loan_amonut(loan)
-      |> Decimal.add(contribution.amount)
-      |> Decimal.to_float
-
-      loan_status = case remaining_loan_amount do
-        t when t >= 0 -> :issued
-        t when t < 0 -> loan.status
-      end
-
-      loan
-      |> Ecto.build_assoc(:contributions, contribution)
-      |> Repo.insert()
-
-      loan
-      |> Loan.changeset(%{status: loan_status})
-      |> Repo.update
-    end)
 
   end
 
-  def get_remaining_loan_amonut(%Loan{} = loan) do
+  def add_contribution(%Wallet{} = wallet, %Loan{} = loan, %Contribution{} = contribution) do
+    Repo.transaction(fn ->
+      remaining_loan_amount = get_remaining_loan_amount(loan)
+      |> Decimal.to_float
+      if remaining_loan_amount > 0 do
+        Wallets.charge(wallet, contribution.amount)
+        remaining_loan_amount = remaining_loan_amount - Decimal.to_float(contribution.amount)
+        loan_status = case remaining_loan_amount do
+          t when t > 0 -> loan.status
+          t when t <= 0 -> :ready_to_be_issued
+        end
+
+        loan
+        |> Ecto.build_assoc(:contributions, contribution)
+        |> Repo.insert()
+
+        loan
+        |> Loan.changeset(%{status: loan_status})
+        |> Repo.update
+      else
+        loan
+      end
+
+    end)
+  end
+
+  def create_contribution(_, %Loan{} = loan) when loan.status != :approved do
+    {:error, "loan must be approved"}
+  end
+
+
+  def get_remaining_loan_amount(%Loan{} = loan) do
     total_contributions = loan.contributions
       |> Enum.map(& &1.amount)
       |> Enum.reduce(Decimal.new(0), &Decimal.add/2)
@@ -358,8 +373,36 @@ defmodule P2pLoan.Loans do
   end
 
 
-  # def create_interest_charges(%Loan{} = loan) do
-  #   loan.contributions
-  #   |>
-  # end
+  def issue(%Loan{} = loan) do
+    Repo.transaction(fn ->
+      loan.contributions
+      |> Enum.flat_map(& convert_to_interest_charges(&1, loan))
+      |> Enum.each(fn ic -> Repo.insert(ic) end)
+
+      loan
+      |> Loan.changeset(%{status: :issued})
+      |> Repo.update()
+    end)
+
+  end
+
+  def convert_to_interest_charges(contribution, %Loan{} = loan) do
+    number_of_months = loan.duration*12
+    amount = Decimal.mult(contribution.amount, loan.interest_rate)
+    |> Decimal.div(100)
+    |> Decimal.add(contribution.amount)
+    |> Decimal.div(number_of_months)
+
+    now = DateTime.utc_now()
+    Stream.iterate(now, & DateTime.new!(Date.shift(&1, month: 1), DateTime.to_time(&1)))
+    |> Enum.take(number_of_months)
+    |> Enum.map(& %InterestCharge{status: :to_pay, amount: amount, due_date: DateTime.truncate(&1, :second), debtor_id: contribution.contributor_id, loan: loan})
+    |> Enum.to_list
+  end
+
+  def get_interest_charges(loan_id) do
+    loan = Loans.get_loan!(loan_id)
+    |> Repo.preload(:interest_charges)
+    loan.interest_charges
+  end
 end

@@ -73,9 +73,13 @@ defmodule P2pLoanWeb.WalletController do
 
   def topup(conn, %{"id" => id, "wallet" => %{"increase" => increase}})do
     wallet = Wallets.get_wallet!(id)
-    |> Wallets.top_up(Decimal.new(increase))
-    conn
+    case Wallets.top_up(wallet, Decimal.new(increase)) do
+    {:ok, wallet} -> conn
         |> put_flash(:info, "Wallet topped up successfully.")
         |> redirect(to: ~p"/wallets/#{wallet}")
+    {:error, msg} -> conn
+        |> put_flash(:error, "Wallet top-up failed: #{msg}")
+        |> redirect(to: ~p"/wallets/#{wallet}")
+    end
   end
 end

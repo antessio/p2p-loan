@@ -1,6 +1,7 @@
 defmodule P2pLoanWeb.LoanHTML do
   use P2pLoanWeb, :html
 
+  alias P2pLoan.Loans
   embed_templates "loan_html/*"
 
   @doc """
@@ -10,4 +11,10 @@ defmodule P2pLoanWeb.LoanHTML do
   attr :action, :string, required: true
 
   def loan_form(assigns)
+
+
+  def get_remaining_loan_amount(loan_id) do
+    Loans.get_loan!(loan_id)
+    |> Loans.get_remaining_loan_amount
+  end
 end

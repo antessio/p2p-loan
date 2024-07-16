@@ -57,6 +57,13 @@ defmodule P2pLoanWeb.LoanController do
     end
   end
 
+  def issue(conn, %{"id" => id})do
+    loan = Loans.get_loan!(id)
+    Loans.issue(loan)
+
+    conn |> redirect(to: ~p"/loans/#{loan}")
+
+  end
   def delete(conn, %{"id" => id}) do
     loan = Loans.get_loan!(id)
     {:ok, _loan} = Loans.delete_loan(loan)
@@ -68,7 +75,6 @@ defmodule P2pLoanWeb.LoanController do
 
 
   def add_contributor(conn, %{"id" => id, "loan" => contribution_params})do
-    # IO.puts(Enum.map_join(contribution_params, ", ", fn {key, val} -> ~s{"#{key}", "#{val}"} end))
 
     loan = Loans.get_loan!(id)
     contribution = %Contribution{currency: loan.currency, amount: Decimal.new(contribution_params["contributor_amount"]), contributor_id: contribution_params["contributor_id"]}
@@ -77,7 +83,9 @@ defmodule P2pLoanWeb.LoanController do
         conn
         |> put_flash(:info, "Loan contributor added.")
         |> redirect(to: ~p"/loans/#{loan}")
-
+      {:error, message} -> conn
+      |> put_flash(:error, message)
+      |> redirect(to: ~p"/loans/#{loan}")
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, loan: loan, changeset: changeset)
     end
@@ -91,10 +99,15 @@ defmodule P2pLoanWeb.LoanController do
 
   def delete_contributor(conn, %{"id" => id, "contributor_id" => contributor_id})do
     contribution = Loans.get_contribution!(contributor_id)
-    {:ok, _contribution} = Loans.delete_contribution(contribution)
+    {:ok, _} = Loans.delete_contribution(contribution)
 
     conn
     |> put_flash(:info, "Contribution deleted successfully.")
     |> redirect(to: ~p"/loans/#{id}")
+  end
+
+  def get_interest_charges(conn, %{"id" => id}) do
+    interest_charges = Loans.get_interest_charges(id)
+    render(conn, :interest_charges, loan_id: id, interest_charges: interest_charges)
   end
 end

@@ -12,6 +12,16 @@
       <.button>Add contributor</.button>
     </.link>
     <% end %>
+    <%= if @loan.status == :ready_to_be_issued do %>
+      <.link href={~p"/loans/#{@loan}/issue"} method="post">
+      <.button>Issue</.button>
+      </.link>
+    <% end %>
+    <%= if @loan.status == :issued do %>
+      <.link href={~p"/loans/#{@loan}/interest_charges"}>
+      <.button>See interest charges</.button>
+      </.link>
+    <% end %>
   </:actions>
 </.header>
 
@@ -19,7 +29,22 @@
   <:item title="Owner"><%= @loan.owner_id %></:item>
   <:item title="Amount"><%= @loan.amount %></:item>
   <:item title="Currency"><%= @loan.currency %></:item>
-  <:item title="Interest rate"><%= @loan.interest_rate %></:item>
+  <:item title="Remaining Amount">
+  <%= if @loan.status != :requested do %>
+    <%= get_remaining_loan_amount(@loan.id) %>
+  <% else %>
+    - 
+  <% end %>
+   </:item>
+  <:item title="Interest rate">
+  
+  <%= if @loan.status != :requested do %>
+    <%= @loan.interest_rate %>
+  <% else %>
+    - 
+  <% end %>
+  
+  </:item>
   <:item title="Duration in years"><%= @loan.duration %></:item>
   <:item title="Status"><%= @loan.status %></:item>
 </.list>
