@@ -8,7 +8,6 @@ defmodule P2pLoan.Loans.Contribution do
     field :currency, :string
     field :contributor_id, Ecto.UUID
     field :amount, :decimal
-    # field :loan_id, :id
     belongs_to :loan, P2pLoan.Loans.Loan
 
 
