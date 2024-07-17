@@ -15,6 +15,11 @@ defmodule P2pLoanWeb.Router do
   end
 
   scope "/", P2pLoanWeb do
+    pipe_through :api
+    forward "/api", GraphQl.Router
+  end
+
+  scope "/", P2pLoanWeb do
     pipe_through :browser
 
     get "/", PageController, :home
