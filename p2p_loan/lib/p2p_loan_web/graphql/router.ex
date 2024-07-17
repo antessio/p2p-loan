@@ -1,4 +1,4 @@
-defmodule P2pLoanWeb.GraphQl.Router do
+defmodule P2pLoanWeb.GraphQL.Router do
   use Plug.Router
 
   plug :match
