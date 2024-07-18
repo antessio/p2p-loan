@@ -14,7 +14,7 @@ defmodule P2pLoanWeb.LoanHTML do
 
 
   def get_remaining_loan_amount(loan_id) do
-    Loans.get_loan!(loan_id)
+    Loans.get_loan_with_contributions!(loan_id)
     |> Loans.get_remaining_loan_amount
   end
 end

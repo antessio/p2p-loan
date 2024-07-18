@@ -53,6 +53,10 @@ defmodule P2pLoan.Loans do
   """
   def get_loan!(id)do
     Repo.get!(Loan, id)
+  end
+
+  def get_loan_with_contributions!(id)do
+    Repo.get!(Loan, id)
     |> Repo.preload(:contributions)
   end
 

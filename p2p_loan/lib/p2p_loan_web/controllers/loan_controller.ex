@@ -33,7 +33,7 @@ defmodule P2pLoanWeb.LoanController do
   end
 
   def show(conn, %{"id" => id}) do
-    loan = Loans.get_loan!(id)
+    loan = Loans.get_loan_with_contributions!(id)
     render(conn, :show, loan: loan)
   end
 
@@ -58,7 +58,7 @@ defmodule P2pLoanWeb.LoanController do
   end
 
   def issue(conn, %{"id" => id})do
-    loan = Loans.get_loan!(id)
+    loan = Loans.get_loan_with_contributions!(id)
     Loans.issue(loan)
 
     conn |> redirect(to: ~p"/loans/#{loan}")
@@ -76,7 +76,7 @@ defmodule P2pLoanWeb.LoanController do
 
   def add_contributor(conn, %{"id" => id, "loan" => contribution_params})do
 
-    loan = Loans.get_loan!(id)
+    loan = Loans.get_loan_with_contributions!(id)
     contribution = %Contribution{currency: loan.currency, amount: Decimal.new(contribution_params["contributor_amount"]), contributor_id: contribution_params["contributor_id"]}
     case Loans.create_contribution(contribution, loan) do
       {:ok, contributor} ->
@@ -92,7 +92,7 @@ defmodule P2pLoanWeb.LoanController do
   end
 
   def get_add_contributor(conn, %{"id" => id}) do
-    loan = Loans.get_loan!(id)
+    loan = Loans.get_loan_with_contributions!(id)
     changeset = Loans.change_loan(loan)
     render(conn, :add_contributor, loan: loan, changeset: changeset)
   end
