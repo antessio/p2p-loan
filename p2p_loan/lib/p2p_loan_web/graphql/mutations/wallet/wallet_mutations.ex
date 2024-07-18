@@ -3,7 +3,7 @@ defmodule P2pLoan.GraphQL.Wallet.WalletMutations do
   alias P2pLoanWeb.GraphQL.Wallet.WalletTypes
   alias P2pLoanWeb.GraphQL.Wallet.WalletResolver
 
-  object :create_wallet do
+  object :wallet_mutations do
     field :create_wallet, non_null(:wallet) do
       arg :amount, non_null(:decimal)
       arg :owner_id, non_null(:string)

@@ -4,6 +4,8 @@ defmodule P2pLoanWeb.GraphQL.Schema do
   alias P2pLoan.Wallets
 
   alias P2pLoanWeb.GraphQL.Wallet.WalletResolver
+  alias P2pLoanWeb.GraphQL.Middleware.HandleChangesetErrors
+
 
   import_types Absinthe.Type.Custom
 
@@ -20,10 +22,18 @@ defmodule P2pLoanWeb.GraphQL.Schema do
   end
 
   mutation do
-    import_fields :create_wallet
+    import_fields :wallet_mutations
+    import_fields :loan_mutations
   end
 
 
+  def middleware(middleware, _field, %{identifier: :mutation}) do
+    middleware ++ [HandleChangesetErrors]
+  end
+
+  def middleware(middleware, _field, _object) do
+    middleware
+  end
 
 
 end

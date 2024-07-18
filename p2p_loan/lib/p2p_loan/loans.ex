@@ -74,11 +74,6 @@ defmodule P2pLoan.Loans do
     |> Repo.insert()
   end
 
-  # def request_loan(owner_id, currency, amount) do
-  #   %Loan{owner_id: owner_id, currency: currency, amount: amount, status: :requested}
-  #   |> Repo.insert()
-
-  # end
   def request_loan(%LoanRequest{} = loan_request) do
     %Loan{owner_id: loan_request.owner_id, currency: loan_request.currency, amount: loan_request.amount, status: :requested, duration: loan_request.duration}
     |> Repo.insert()
@@ -152,6 +147,10 @@ defmodule P2pLoan.Loans do
     Repo.all(Contribution)
   end
 
+  def list_contributions_by_loan_ids(loan_ids) do
+    from(c in Contribution, where: c.loan_id in ^loan_ids)
+    |> Repo.all()
+  end
   @doc """
   Gets a single contribution.
 

@@ -14,5 +14,9 @@ defmodule P2pLoan.GraphQL.Loan.LoanQueries do
       resolve &LoanResolvers.get_loans/2
     end
 
+    field :get_requested_loans, list_of(:loan) do
+      resolve &LoanResolvers.get_requested_loans/2
+    end
+
   end
 end
