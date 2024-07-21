@@ -183,7 +183,7 @@ defmodule P2pLoan.Loans do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_contribution(%Contribution{} = contribution, %Loan{} = loan) do
+  def create_contribution(%Contribution{} = contribution, %Loan{} = loan) when loan.status == :approved  do
 
     wallet = Wallets.get_wallet_by_owner_id(contribution.contributor_id)
     cond do
@@ -198,30 +198,29 @@ defmodule P2pLoan.Loans do
     Repo.transaction(fn ->
       remaining_loan_amount = get_remaining_loan_amount(loan)
       |> Decimal.to_float
+
+      loan_status = case remaining_loan_amount do
+        t when t > 0 -> loan.status
+        t when t <= 0 -> :ready_to_be_issued
+      end
+
       if remaining_loan_amount > 0 do
         Wallets.charge(wallet, contribution.amount)
         remaining_loan_amount = remaining_loan_amount - Decimal.to_float(contribution.amount)
-        loan_status = case remaining_loan_amount do
-          t when t > 0 -> loan.status
-          t when t <= 0 -> :ready_to_be_issued
-        end
 
         loan
         |> Ecto.build_assoc(:contributions, contribution)
         |> Repo.insert()
-
-        loan
+      end
+      loan
         |> Loan.changeset(%{status: loan_status})
         |> Repo.update
-      else
-        loan
-      end
 
     end)
   end
 
   def create_contribution(_, %Loan{} = loan) when loan.status != :approved do
-    {:error, "loan must be approved"}
+    {:error, "loan is expected to be approved but is #{loan.status}"}
   end
 
 

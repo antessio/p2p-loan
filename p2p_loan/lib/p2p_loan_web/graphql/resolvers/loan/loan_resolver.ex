@@ -1,6 +1,7 @@
 defmodule P2pLoanWeb.GraphQL.Loan.LoanResolvers do
   alias P2pLoan.Loans
   alias P2pLoan.Loans.LoanRequest
+  alias P2pLoan.Loans.Contribution
 
   def get_loan(%{id: id}, _resolver) do
     {:ok, Loans.get_loan_with_contributions!(id)}
@@ -22,5 +23,17 @@ defmodule P2pLoanWeb.GraphQL.Loan.LoanResolvers do
   def approve_loan(%{loan_id: loan_id, interest_rate: interest_rate}, _resolver) do
     Loans.get_loan!(loan_id)
     |> Loans.approve(interest_rate)
+  end
+
+  def add_contribution(%{loan_id: loan_id, contributor_id: contributor_id, contribution_amount: contribution_amount}, _resolver) do
+    loan = Loans.get_loan_with_contributions!(loan_id)
+    contribution = %Contribution{currency: loan.currency, amount: contribution_amount, contributor_id: contributor_id}
+    case Loans.create_contribution(contribution, loan) do
+      {:ok, l} -> case l do
+        {:ok, x} -> x
+        {:error, e} -> {:error, %{message: e}}
+      end
+      {:error, e} -> {:error, %{message: e}}
+    end
   end
 end

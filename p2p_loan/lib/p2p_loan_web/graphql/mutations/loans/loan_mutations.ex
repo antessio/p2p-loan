@@ -20,5 +20,13 @@ defmodule P2pLoan.GraphQL.Loan.LoanMutations do
 
       resolve &LoanResolvers.approve_loan/2
     end
+
+    field :loan_contribute, non_null(:loan) do
+      arg :loan_id, non_null(:id)
+      arg :contributor_id, non_null(:string)
+      arg :contribution_amount, non_null(:decimal)
+
+      resolve &LoanResolvers.add_contribution/2
+    end
   end
 end
