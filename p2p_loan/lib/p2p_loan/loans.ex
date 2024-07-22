@@ -407,4 +407,39 @@ defmodule P2pLoan.Loans do
     |> Repo.preload(:interest_charges)
     loan.interest_charges
   end
+
+  def charge_interests(loan_id, target_date) do
+    loan = Loans.get_loan!(loan_id)
+    |> Repo.preload(:interest_charges)
+    owner_wallet = Wallets.get_wallet_by_owner_id(loan.owner_id)
+
+    %{wallet_updated, interest_charges_to_process} = interest_charges
+    |> Enum.filter(fn interest_charge -> interest_charge.due_date < target_date end)
+    |> Enum.reduce({owner_wallet,[]}, fn interest_charge_elem, {wallet, updated_interest_charges} ->
+      case interest_charge_elem do
+        i when i.amount <= wallet.amount -> {%{id: wallet.id, amount: wallet.amount - i.amount}, [Map.merge(i, %{status: :paid }) | updated_interest_charges]}
+        i when i.amount > wallet.amount -> {wallet, [Map.merge(i, %{status: :expired}) | updated_interest_charges]}
+      end
+      end)
+
+      Repo.transaction(fn ->
+        debtor_wallet_updated = Wallets.charge(debtor_wallet, debtor_wallet.amount - debtor_wallet_updated.amount)
+        interest_charges_to_process
+        |> Enum.each(fn interest_charge -> process_interest_charge(interest_charge) end)
+      end)
+  end
+
+  defp process_interest_charge(%InterestCharge{} = interest_charge) when interest_charge.status == :paid do
+    owner_wallet = Wallets.get_wallet_by_owner_id(interest_charge.debtor_id)
+    |> Wallets.top_up(interest_charge.amount)
+    interest_charge_updated = interest_charge
+        |> InterestCharge.changeset(%{status: :paid})
+        |> Repo.update
+  end
+
+  defp process_interest_charge(%InterestCharge{} = interest_charge) when interest_charge.status == :expired do
+    interest_charge_updated = interest_charge
+        |> InterestCharge.changeset(%{status: :expired})
+        |> Repo.update
+  end
 end
