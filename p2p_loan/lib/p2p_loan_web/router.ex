@@ -28,6 +28,8 @@ defmodule P2pLoanWeb.Router do
     resources "/loans", LoanController
     put "/loans/:id/contributors", LoanController, :add_contributor
     get "/loans/:id/add_contributor", LoanController, :get_add_contributor
+    get "/loans/:id/interest_charge_processing", LoanController, :get_interest_charge_processing
+    put "/loans/:id/process_interest_charges", LoanController, :process_interest_charges
     delete "/loans/:id/contributors/:contributor_id", LoanController, :delete_contributor
     post "/loans/:id/issue", LoanController, :issue
     get "/loans/:id/interest_charges", LoanController, :get_interest_charges

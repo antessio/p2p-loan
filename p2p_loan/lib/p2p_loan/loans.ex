@@ -13,7 +13,6 @@ defmodule P2pLoan.Loans do
   alias P2pLoan.Wallets.Wallet
   alias P2pLoan.Loans.InterestCharge
 
-
   defmodule LoanRequest do
     @enforce_keys [:owner_id, :amount, :currency, :duration]
     defstruct [:owner_id, :amount, :currency, :duration]
@@ -51,11 +50,11 @@ defmodule P2pLoan.Loans do
       ** (Ecto.NoResultsError)
 
   """
-  def get_loan!(id)do
+  def get_loan!(id) do
     Repo.get!(Loan, id)
   end
 
-  def get_loan_with_contributions!(id)do
+  def get_loan_with_contributions!(id) do
     Repo.get!(Loan, id)
     |> Repo.preload(:contributions)
   end
@@ -79,16 +78,21 @@ defmodule P2pLoan.Loans do
   end
 
   def request_loan(%LoanRequest{} = loan_request) do
-    %Loan{owner_id: loan_request.owner_id, currency: loan_request.currency, amount: loan_request.amount, status: :requested, duration: loan_request.duration}
+    %Loan{
+      owner_id: loan_request.owner_id,
+      currency: loan_request.currency,
+      amount: loan_request.amount,
+      status: :requested,
+      duration: loan_request.duration
+    }
     |> Repo.insert()
-
   end
 
-  def approve(%Loan{} = loan, interest_rate)do
-      # TODO: error in case the loan is not requested
-      loan
-      |> Loan.changeset(%{interest_rate: interest_rate, status: :approved})
-      |> Repo.update()
+  def approve(%Loan{} = loan, interest_rate) do
+    # TODO: error in case the loan is not requested
+    loan
+    |> Loan.changeset(%{interest_rate: interest_rate, status: :approved})
+    |> Repo.update()
   end
 
   @doc """
@@ -155,6 +159,7 @@ defmodule P2pLoan.Loans do
     from(c in Contribution, where: c.loan_id in ^loan_ids)
     |> Repo.all()
   end
+
   @doc """
   Gets a single contribution.
 
@@ -183,26 +188,27 @@ defmodule P2pLoan.Loans do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_contribution(%Contribution{} = contribution, %Loan{} = loan) when loan.status == :approved  do
-
+  def create_contribution(%Contribution{} = contribution, %Loan{} = loan)
+      when loan.status == :approved do
     wallet = Wallets.get_wallet_by_owner_id(contribution.contributor_id)
+
     cond do
       wallet.amount < contribution.amount -> {:error, "#{wallet.owner_id} has not enough money"}
       true -> {:ok, add_contribution(wallet, loan, contribution)}
     end
-
-
   end
 
   def add_contribution(%Wallet{} = wallet, %Loan{} = loan, %Contribution{} = contribution) do
     Repo.transaction(fn ->
-      remaining_loan_amount = get_remaining_loan_amount(loan)
-      |> Decimal.to_float
+      remaining_loan_amount =
+        get_remaining_loan_amount(loan)
+        |> Decimal.to_float()
 
-      loan_status = case remaining_loan_amount do
-        t when t > 0 -> loan.status
-        t when t <= 0 -> :ready_to_be_issued
-      end
+      loan_status =
+        case remaining_loan_amount do
+          t when t > 0 -> loan.status
+          t when t <= 0 -> :ready_to_be_issued
+        end
 
       if remaining_loan_amount > 0 do
         Wallets.charge(wallet, contribution.amount)
@@ -212,10 +218,10 @@ defmodule P2pLoan.Loans do
         |> Ecto.build_assoc(:contributions, contribution)
         |> Repo.insert()
       end
-      loan
-        |> Loan.changeset(%{status: loan_status})
-        |> Repo.update
 
+      loan
+      |> Loan.changeset(%{status: loan_status})
+      |> Repo.update()
     end)
   end
 
@@ -223,11 +229,12 @@ defmodule P2pLoan.Loans do
     {:error, "loan is expected to be approved but is #{loan.status}"}
   end
 
-
   def get_remaining_loan_amount(%Loan{} = loan) do
-    total_contributions = loan.contributions
+    total_contributions =
+      loan.contributions
       |> Enum.map(& &1.amount)
       |> Enum.reduce(Decimal.new(0), &Decimal.add/2)
+
     Decimal.sub(loan.amount, total_contributions)
   end
 
@@ -277,8 +284,6 @@ defmodule P2pLoan.Loans do
   def change_contribution(%Contribution{} = contribution, attrs \\ %{}) do
     Contribution.changeset(contribution, attrs)
   end
-
-
 
   @doc """
   Returns the list of interest_chargges.
@@ -374,72 +379,104 @@ defmodule P2pLoan.Loans do
     InterestCharge.changeset(interest_charge, attrs)
   end
 
-
   def issue(%Loan{} = loan) do
     Repo.transaction(fn ->
       loan.contributions
-      |> Enum.flat_map(& convert_to_interest_charges(&1, loan))
+      |> Enum.flat_map(&convert_to_interest_charges(&1, loan))
       |> Enum.each(fn ic -> Repo.insert(ic) end)
 
       loan
       |> Loan.changeset(%{status: :issued})
       |> Repo.update()
     end)
-
   end
 
   def convert_to_interest_charges(contribution, %Loan{} = loan) do
-    number_of_months = loan.duration*12
-    amount = Decimal.mult(contribution.amount, loan.interest_rate)
-    |> Decimal.div(100)
-    |> Decimal.add(contribution.amount)
-    |> Decimal.div(number_of_months)
+    number_of_months = loan.duration * 12
+
+    amount =
+      Decimal.mult(contribution.amount, loan.interest_rate)
+      |> Decimal.div(100)
+      |> Decimal.add(contribution.amount)
+      |> Decimal.div(number_of_months)
 
     now = DateTime.utc_now()
-    Stream.iterate(now, & DateTime.new!(Date.shift(&1, month: 1), DateTime.to_time(&1)))
+
+    Stream.iterate(now, &DateTime.new!(Date.shift(&1, month: 1), DateTime.to_time(&1)))
     |> Enum.take(number_of_months)
-    |> Enum.map(& %InterestCharge{status: :to_pay, amount: amount, due_date: DateTime.truncate(&1, :second), debtor_id: contribution.contributor_id, loan: loan})
-    |> Enum.to_list
+    |> Enum.map(
+      &%InterestCharge{
+        status: :to_pay,
+        amount: amount,
+        due_date: DateTime.truncate(&1, :second),
+        debtor_id: contribution.contributor_id,
+        loan: loan
+      }
+    )
+    |> Enum.to_list()
   end
 
   def get_interest_charges(loan_id) do
-    loan = Loans.get_loan!(loan_id)
-    |> Repo.preload(:interest_charges)
+    loan =
+      Loans.get_loan!(loan_id)
+      |> Repo.preload(:interest_charges)
+
     loan.interest_charges
   end
 
   def charge_interests(loan_id, target_date) do
-    loan = Loans.get_loan!(loan_id)
-    |> Repo.preload(:interest_charges)
+    loan =
+      Loans.get_loan!(loan_id)
+      |> Repo.preload(:interest_charges)
+
     owner_wallet = Wallets.get_wallet_by_owner_id(loan.owner_id)
 
-    %{wallet_updated, interest_charges_to_process} = interest_charges
-    |> Enum.filter(fn interest_charge -> interest_charge.due_date < target_date end)
-    |> Enum.reduce({owner_wallet,[]}, fn interest_charge_elem, {wallet, updated_interest_charges} ->
-      case interest_charge_elem do
-        i when i.amount <= wallet.amount -> {%{id: wallet.id, amount: wallet.amount - i.amount}, [Map.merge(i, %{status: :paid }) | updated_interest_charges]}
-        i when i.amount > wallet.amount -> {wallet, [Map.merge(i, %{status: :expired}) | updated_interest_charges]}
-      end
+    {wallet, interest_charges_to_process} =
+      loan.interest_charges
+      |> Enum.filter(fn interest_charge -> DateTime.compare(interest_charge.due_date, target_date) == :lt end)
+      |> Enum.reduce({owner_wallet, []}, fn interest_charge_elem,
+                                            {wallet, updated_interest_charges} ->
+        case interest_charge_elem do
+          i when i.amount <= wallet.amount ->
+            {%{id: wallet.id, amount: Decimal.sub(wallet.amount, i.amount)},
+             [i |> InterestCharge.changeset(%{status: :paid}) | updated_interest_charges]}
+
+          i when i.amount > wallet.amount ->
+            {wallet,
+             [i |> InterestCharge.changeset(%{status: :expired}) | updated_interest_charges]}
+        end
       end)
 
-      Repo.transaction(fn ->
-        debtor_wallet_updated = Wallets.charge(debtor_wallet, debtor_wallet.amount - debtor_wallet_updated.amount)
-        interest_charges_to_process
-        |> Enum.each(fn interest_charge -> process_interest_charge(interest_charge) end)
+    Repo.transaction(fn ->
+      interest_charges_to_process
+      |> Enum.each(fn interest_charge ->
+        case Wallets.get_wallet_by_owner_id(interest_charge.data.debtor_id)
+             |> Wallets.top_up(interest_charge.data.amount) do
+          {:ok, _} -> Repo.update(interest_charge)
+        end
       end)
+    end)
+
+    :ok
   end
 
-  defp process_interest_charge(%InterestCharge{} = interest_charge) when interest_charge.status == :paid do
-    owner_wallet = Wallets.get_wallet_by_owner_id(interest_charge.debtor_id)
-    |> Wallets.top_up(interest_charge.amount)
-    interest_charge_updated = interest_charge
-        |> InterestCharge.changeset(%{status: :paid})
-        |> Repo.update
+  defp process_interest_charge(%InterestCharge{} = interest_charge)
+       when interest_charge.status == :paid do
+    get_interest_charge!(interest_charge.id)
+    |> InterestCharge.changeset(%{status: :paid})
+    |> Repo.update()
+
+    #  case Wallets.get_wallet_by_owner_id(interest_charge.debtor_id) |> Wallets.top_up(interest_charge.amount) do
+    #   {:ok, _} -> interest_charge
+    #               |> InterestCharge.changeset(%{status: :paid})
+    #               |> Repo.update
+    # end
   end
 
-  defp process_interest_charge(%InterestCharge{} = interest_charge) when interest_charge.status == :expired do
-    interest_charge_updated = interest_charge
-        |> InterestCharge.changeset(%{status: :expired})
-        |> Repo.update
+  defp process_interest_charge(%InterestCharge{} = interest_charge)
+       when interest_charge.status == :expired do
+    interest_charge
+    |> InterestCharge.changeset(%{status: :expired})
+    |> Repo.update()
   end
 end

@@ -1,6 +1,12 @@
 <.header>
   Loan <%= @loan_id %>
   <:subtitle>This is a loan record from your database.</:subtitle>
+  <:actions>
+    
+    <.link href={~p"/loans/#{@loan_id}/interest_charge_processing"}>
+      <.button>Process interest charges</.button>
+    </.link>
+  </:actions>
 </.header>
 <.table id="interest_charges" rows={@interest_charges}>
   <:col :let={interest_charge} label="Debtor"><%= interest_charge.debtor_id %></:col>

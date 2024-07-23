@@ -1,0 +1,7 @@
+<.header>
+  Process Interest charges <%= @loan.id %>
+</.header>
+
+<.interest_processing_form changeset={@changeset} action={~p"/loans/#{@loan.id}/process_interest_charges"} />
+
+<.back navigate={~p"/loans/#{@loan.id}/interest_charges"}>Back to interest charges</.back>

@@ -110,4 +110,22 @@ defmodule P2pLoanWeb.LoanController do
     interest_charges = Loans.get_interest_charges(id)
     render(conn, :interest_charges, loan_id: id, interest_charges: interest_charges)
   end
+
+  def get_interest_charge_processing(conn, %{"id" => id}) do
+    loan = Loans.get_loan_with_contributions!(id)
+    changeset = Loans.change_loan(loan)
+    render(conn, :interest_charge_processing, loan: loan, changeset: changeset)
+  end
+
+  def process_interest_charges(conn, %{"id"=>id, "loan" => %{"target_date" => t}}) do
+    {:ok, target_date, _} = DateTime.from_iso8601("#{t}T00:00:00Z")
+    case Loans.charge_interests(id, target_date) do
+      :ok-> conn
+      |> put_flash(:info, "Processed correctly #{target_date}.")
+      |> redirect(to: ~p"/loans/#{id}/interest_charges")
+      :error -> conn
+      |> put_flash(:error, "Error processing #{target_date}.")
+      |> redirect(to: ~p"/loans/#{id}/interest_charges")
+    end
+  end
 end
