@@ -5,11 +5,14 @@ import Config
 # The MIX_TEST_PARTITION environment variable can be used
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
+config :testcontainers,
+  enabled: true
+
 config :p2p_loan, P2pLoan.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "p2ploan",
+  password: "p2ploan_pwd",
   hostname: "localhost",
-  database: "p2p_loan_test#{System.get_env("MIX_TEST_PARTITION")}",
+  database: "p2ploandb",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 

@@ -88,12 +88,19 @@ defmodule P2pLoan.Loans do
     |> Repo.insert()
   end
 
-  def approve(%Loan{} = loan, interest_rate) do
-    # TODO: error in case the loan is not requested
+  def approve(%Loan{} = loan, interest_rate) when loan.status == :requested do
     loan
     |> Loan.changeset(%{interest_rate: interest_rate, status: :approved})
     |> Repo.update()
   end
+
+  def approve(%Loan{} = loan, _) when loan.status == :approved do
+    {:ok, loan}
+  end
+  def approve(%Loan{} = loan, _) do
+    {:error, "invalid loan status #{loan.status}"}
+  end
+
 
   @doc """
   Updates a loan.
