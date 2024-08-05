@@ -30,6 +30,7 @@ defmodule P2pLoan.LoansFixtures do
     build_loan(:requested, %{})
   end
 
+
   def build_loan(:approved, loan) do
     defaults = %{
       amount: Decimal.from_float(120.5),
@@ -51,6 +52,31 @@ defmodule P2pLoan.LoansFixtures do
     }
   end
 
+  def build_loan(:ready_to_be_issued, loan) do
+    defaults = %{
+      amount: Decimal.from_float(120.5),
+      currency: "EUR",
+      duration: 10,
+      interest_rate: Decimal.new("3")
+    }
+
+    %{amount: amount, currency: currency, duration: duration, interest_rate: interest_rate} =
+      Map.merge(defaults, loan)
+
+    %Loan{
+      amount: amount,
+      currency: currency,
+      owner_id: unique_uuid(),
+      status: :ready_to_be_issued,
+      duration: duration,
+      interest_rate: interest_rate,
+      contributions: [
+        build_contribution(),
+        build_contribution()
+      ]
+    }
+  end
+
 
   def build_loan(:issued, loan \\ %{}) do
     defaults = %{
@@ -63,7 +89,6 @@ defmodule P2pLoan.LoansFixtures do
         build_contribution()
       ]
     }
-
     %{
       amount: amount,
       currency: currency,
@@ -71,7 +96,6 @@ defmodule P2pLoan.LoansFixtures do
       interest_rate: interest_rate,
       contributions: contributions
     } = Map.merge(defaults, loan)
-
     %Loan{
       amount: amount,
       currency: currency,
@@ -83,22 +107,9 @@ defmodule P2pLoan.LoansFixtures do
     }
   end
 
-  # def build_loan(:issued, %{amount: amount \\ 120.5, currency: currency \\ "EUR", duration: duration \\ 10, interest_rate: interest_rate \\ 3}, contributions \\ []) do
-  #   %Loan{
-  #     amount: amount,
-  #     currency: currency,
-  #     owner_id: unique_uuid(),
-  #     status: :requested,
-  #     duration: duration,
-  #     interest_rate: interest_rate,
-  #     contributions: contributions
-  #   }
-  # end
-
   def build_contribution(contribution \\ %{}) do
-    defaults = %{currency: "EUR", amount: 2020.02}
+    defaults = %{currency: "EUR", amount: Decimal.from_float(2020.02)}
     %{currency: currency, amount: amount} = Map.merge(defaults, contribution)
-
     %Contribution{
       currency: currency,
       amount: amount,
@@ -108,55 +119,13 @@ defmodule P2pLoan.LoansFixtures do
 
   def insert_loan(%Loan{} = loan) do
     loan
-    # |> Loan.changeset()
     |> P2pLoan.Repo.insert!()
   end
 
-  def insert_loan_with_contributions(%Loan{} = loan, contributions) do
-    loan
-    |> Ecto.build_assoc(:contributions, contributions)
+  def insert_loan_with_contributions(%Loan{} = loan) do
+    l = loan
     |> P2pLoan.Repo.insert!()
   end
-
-  @doc """
-  Generate a loan requested.
-  """
-  def loan_requested_fixture(%{amount: amount, currency: currency, duration: duration}) do
-    {:ok, loan} =
-      %Loan{
-        amount: amount || 120.5,
-        currency: currency || "EUR",
-        owner_id: unique_uuid(),
-        status: :requested,
-        duration: duration || 10
-      }
-      |> P2pLoan.Repo.insert()
-
-    loan
-  end
-
-  @doc """
-  Generate a loan requested.
-  """
-  def loan_requested_fixture() do
-    loan_requested_fixture(%{
-      amount: Decimal.new("120.5"),
-      currency: "EUR",
-      duration: 10
-    })
-  end
-
-  # @doc """
-  # Generate a loan issued.
-  # """
-  # def loan_issued_fixture() do
-  #   loan_issued_fixture(%{
-  #     amount: 120.5,
-  #     currency: "EUR",
-  #     duration: 10,
-  #     interst_rate: 30
-  #   })
-  # end
 
   @doc """
   Generate a contribution.

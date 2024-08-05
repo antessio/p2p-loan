@@ -44,7 +44,7 @@ defmodule P2pLoan.LoansTest do
       assert loan.status == :requested
     end
 
-    test "approve/1 updates the loan status and sets the interest rate" do
+    test "approve/2 updates the loan status and sets the interest rate" do
       ## given
       requested_loan = insert_loan(build_loan(:requested))
       interest_rate = 3.2
@@ -60,26 +60,48 @@ defmodule P2pLoan.LoansTest do
     end
 
 
-    test "approve/1 fails if loans is not requested" do
+    test "approve/2 fails if loans is not requested" do
       ## given
       issued_loan = insert_loan(build_loan(:issued))
-      ## when
-      {:error, msg} = Loans.approve(issued_loan, 3.2)
 
+      ## when
       ## then
-      assert msg == "invalid loan status issued"
+      assert {:error, "invalid loan status issued"} == Loans.approve(issued_loan, 3.2)
     end
 
-    test "approve/1 doesn't do anything if loan is already approved" do
+    test "approve/2 doesn't do anything if loan is already approved" do
       ## given
       approved_loan = insert_loan(build_loan(:approved))
 
       ## when
-      {:ok, loan} = Loans.approve(approved_loan, 3.2)
+      ## then
+      assert {:ok, approved_loan} == Loans.approve(approved_loan, 3.2)
+    end
+
+    test "issue/1 update the status" do
+      ## given
+      ready_to_be_issued_loan = insert_loan_with_contributions(build_loan(:ready_to_be_issued))
+      ## when
+      {:ok, loan} = Loans.issue(ready_to_be_issued_loan)
+      ## then
+      {loan_map, ready_to_be_issued_loan_map} = to_map_except_fields(loan, ready_to_be_issued_loan, [:status, :updated_at])
+      assert loan_map == ready_to_be_issued_loan_map
+      assert loan.status == :issued
+    end
+
+    test "issue/1 fails if loan status is not ready_to_be_issued" do
+      ## given
+      approved_loan = insert_loan(build_loan(:approved))
+
+      ## when
+      result = Loans.issue(approved_loan)
 
       ## then
-      assert loan == approved_loan
+      assert {:error, "loan is expected to be ready_to_be_issued but is approved"} == result
+
     end
+
+
   #   test "create_loan/1 with valid data creates a loan" do
   #     valid_attrs = %{status: "some status", currency: "some currency", owner_id: "7488a646-e31f-11e4-aace-600308960662", amount: "120.5", interest_rate: "120.5"}
 

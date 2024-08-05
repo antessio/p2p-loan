@@ -22,6 +22,7 @@ defmodule P2pLoan.Loans.Loan do
   def changeset(loan, attrs) do
     loan
     |> cast(attrs, [:owner_id, :amount, :currency, :interest_rate, :status, :duration])
+    |> cast_assoc(:contributions)
     |> validate_required([:owner_id, :amount, :currency, :status, :duration])
   end
 end

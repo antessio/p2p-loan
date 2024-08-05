@@ -386,8 +386,8 @@ defmodule P2pLoan.Loans do
     InterestCharge.changeset(interest_charge, attrs)
   end
 
-  def issue(%Loan{} = loan) do
-    Repo.transaction(fn ->
+  def issue(%Loan{} = loan) when loan.status == :ready_to_be_issued do
+    {:ok, loan} = Repo.transaction(fn ->
       loan.contributions
       |> Enum.flat_map(&convert_to_interest_charges(&1, loan))
       |> Enum.each(fn ic -> Repo.insert(ic) end)
@@ -396,6 +396,14 @@ defmodule P2pLoan.Loans do
       |> Loan.changeset(%{status: :issued})
       |> Repo.update()
     end)
+    loan
+  end
+
+  def issue(%Loan{} = loan) when loan.status == :issued do
+    {:ok, loan}
+  end
+  def issue(%Loan{} = loan) when loan.status not in [:issued, :ready_to_be_issued ] do
+    {:error, "loan is expected to be ready_to_be_issued but is #{loan.status}"}
   end
 
   def convert_to_interest_charges(contribution, %Loan{} = loan) do
