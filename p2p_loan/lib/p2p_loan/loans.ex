@@ -201,8 +201,25 @@ defmodule P2pLoan.Loans do
 
     cond do
       wallet.amount < contribution.amount -> {:error, "#{wallet.owner_id} has not enough money"}
-      true -> {:ok, add_contribution(wallet, loan, contribution)}
+      true -> add_contribution(wallet, loan, contribution)
     end
+  end
+  defp charge_add_contribution(%Wallet{} = wallet, %Loan{} = loan, %Contribution{} = contribution, :with_status_update) do
+    IO.puts("status update")
+    {:ok, loan } = charge_add_contribution(wallet, loan, contribution)
+      |> Loan.changeset(%{status: :ready_to_be_issued})
+      |> Repo.update()
+    loan
+  end
+  defp charge_add_contribution(%Wallet{} = wallet, %Loan{} = loan, %Contribution{} = contribution) do
+    Wallets.charge(wallet, contribution.amount)
+    IO.puts("charged")
+    {:ok, contribution} = loan
+    |> Ecto.build_assoc(:contributions, contribution)
+    |> Repo.insert()
+    ## TODO return the loan with the new contributions
+    loan
+
   end
 
   def add_contribution(%Wallet{} = wallet, %Loan{} = loan, %Contribution{} = contribution) do
@@ -211,24 +228,12 @@ defmodule P2pLoan.Loans do
         get_remaining_loan_amount(loan)
         |> Decimal.to_float()
 
-      loan_status =
-        case remaining_loan_amount do
-          t when t > 0 -> loan.status
-          t when t <= 0 -> :ready_to_be_issued
-        end
+      remaining_loan_amount = remaining_loan_amount - Decimal.to_float(contribution.amount)
 
-      if remaining_loan_amount > 0 do
-        Wallets.charge(wallet, contribution.amount)
-        remaining_loan_amount = remaining_loan_amount - Decimal.to_float(contribution.amount)
-
-        loan
-        |> Ecto.build_assoc(:contributions, contribution)
-        |> Repo.insert()
+      case remaining_loan_amount do
+        t when t > 0 -> charge_add_contribution(wallet, loan, contribution)
+        t when t <= 0 -> charge_add_contribution(wallet, loan, contribution, :with_status_update)
       end
-
-      loan
-      |> Loan.changeset(%{status: loan_status})
-      |> Repo.update()
     end)
   end
 

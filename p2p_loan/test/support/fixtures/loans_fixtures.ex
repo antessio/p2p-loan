@@ -4,6 +4,7 @@ defmodule P2pLoan.LoansFixtures do
   entities via the `P2pLoan.Loans` context.
   """
   alias P2pLoan.Loans.Loan
+  alias P2pLoan.Wallets.Wallet
   alias P2pLoan.Loans.Contribution
 
   @doc """
@@ -11,6 +12,22 @@ defmodule P2pLoan.LoansFixtures do
   """
   def unique_uuid do
     Ecto.UUID.generate()
+  end
+
+  def build_wallet(wallet) do
+    defaults = %{
+      amount: Decimal.from_float(120.5),
+      currency: "EUR",
+      owner_id: unique_uuid()
+    }
+
+    %{amount: amount, currency: currency, owner_id: owner_id} =
+      Map.merge(defaults, wallet)
+    %Wallet{
+      owner_id: owner_id,
+      currency: currency,
+      amount: amount
+    }
   end
 
   def build_loan(:requested, loan) do
@@ -124,6 +141,11 @@ defmodule P2pLoan.LoansFixtures do
 
   def insert_loan_with_contributions(%Loan{} = loan) do
     l = loan
+    |> P2pLoan.Repo.insert!()
+  end
+
+  def insert_wallet(%Wallet{} = wallet) do
+    wallet
     |> P2pLoan.Repo.insert!()
   end
 
