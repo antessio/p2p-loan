@@ -217,9 +217,8 @@ defmodule P2pLoan.Loans do
     {:ok, contribution} = loan
     |> Ecto.build_assoc(:contributions, contribution)
     |> Repo.insert()
-    ## TODO return the loan with the new contributions
-    loan
 
+    get_loan_with_contributions!(loan.id)
   end
 
   def add_contribution(%Wallet{} = wallet, %Loan{} = loan, %Contribution{} = contribution) do

@@ -7,6 +7,7 @@ defmodule P2pLoan.LoansTest do
   describe "loans" do
     alias P2pLoan.Loans.Loan
     alias P2pLoan.Wallets.Wallet
+    alias P2pLoan.Wallets
     alias P2pLoan.Loans.Contribution
 
     import P2pLoan.LoansFixtures
@@ -86,7 +87,7 @@ defmodule P2pLoan.LoansTest do
       contributor_id = unique_uuid()
       approved_loan = insert_loan(build_loan(:approved, %{amount: 300, contributions: []}))
       approved_loan = Loans.get_loan_with_contributions!(approved_loan.id)
-      contributor_wallet = insert_wallet(build_wallet(%{owner_id: contributor_id}))
+      contributor_wallet = insert_wallet(build_wallet(%{owner_id: contributor_id, amount: 400}))
 
       ## when
       {:ok, loan} =
@@ -101,6 +102,8 @@ defmodule P2pLoan.LoansTest do
       ## then
       assert loan.status == :approved
       assert length(Loans.get_loan_with_contributions!(loan.id).contributions) == 1
+      updated_contributor_wallet = Wallets.get_wallet!(contributor_wallet.id)
+      assert updated_contributor_wallet.amount == Decimal.new(380)
     end
 
     test "create_contribution/2 reaches the total amount" do
