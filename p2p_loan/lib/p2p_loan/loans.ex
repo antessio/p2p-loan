@@ -205,7 +205,6 @@ defmodule P2pLoan.Loans do
     end
   end
   defp charge_add_contribution(%Wallet{} = wallet, %Loan{} = loan, %Contribution{} = contribution, :with_status_update) do
-    IO.puts("status update")
     {:ok, loan } = charge_add_contribution(wallet, loan, contribution)
       |> Loan.changeset(%{status: :ready_to_be_issued})
       |> Repo.update()
@@ -213,7 +212,6 @@ defmodule P2pLoan.Loans do
   end
   defp charge_add_contribution(%Wallet{} = wallet, %Loan{} = loan, %Contribution{} = contribution) do
     Wallets.charge(wallet, contribution.amount)
-    IO.puts("charged")
     {:ok, contribution} = loan
     |> Ecto.build_assoc(:contributions, contribution)
     |> Repo.insert()
@@ -411,7 +409,7 @@ defmodule P2pLoan.Loans do
   end
 
   def convert_to_interest_charges(contribution, %Loan{} = loan) do
-    number_of_months = loan.duration * 12
+    number_of_months = loan.duration
 
     amount =
       Decimal.mult(contribution.amount, loan.interest_rate)

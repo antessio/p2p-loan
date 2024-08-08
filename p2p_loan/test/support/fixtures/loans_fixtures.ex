@@ -53,10 +53,11 @@ defmodule P2pLoan.LoansFixtures do
       amount: Decimal.from_float(120.5),
       currency: "EUR",
       duration: 10,
-      interest_rate: Decimal.new("3")
+      interest_rate: Decimal.new("3"),
+      contributions: []
     }
 
-    %{amount: amount, currency: currency, duration: duration, interest_rate: interest_rate} =
+    %{amount: amount, currency: currency, duration: duration, interest_rate: interest_rate, contributions: contributions} =
       Map.merge(defaults, loan)
 
     %Loan{
@@ -65,7 +66,8 @@ defmodule P2pLoan.LoansFixtures do
       owner_id: unique_uuid(),
       status: :approved,
       duration: duration,
-      interest_rate: interest_rate
+      interest_rate: interest_rate,
+      contributions: contributions
     }
   end
 
@@ -74,10 +76,12 @@ defmodule P2pLoan.LoansFixtures do
       amount: Decimal.from_float(120.5),
       currency: "EUR",
       duration: 10,
-      interest_rate: Decimal.new("3")
+      interest_rate: Decimal.new("3"),
+      contributions: [build_contribution(),
+      build_contribution()]
     }
 
-    %{amount: amount, currency: currency, duration: duration, interest_rate: interest_rate} =
+    %{amount: amount, currency: currency, duration: duration, interest_rate: interest_rate, contributions: contributions} =
       Map.merge(defaults, loan)
 
     %Loan{
@@ -87,10 +91,7 @@ defmodule P2pLoan.LoansFixtures do
       status: :ready_to_be_issued,
       duration: duration,
       interest_rate: interest_rate,
-      contributions: [
-        build_contribution(),
-        build_contribution()
-      ]
+      contributions: contributions
     }
   end
 

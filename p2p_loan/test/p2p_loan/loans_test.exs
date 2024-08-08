@@ -111,7 +111,7 @@ defmodule P2pLoan.LoansTest do
       contributor_id = unique_uuid()
       approved_loan = insert_loan(build_loan(:approved, %{amount: 300, contributions: []}))
       approved_loan = Loans.get_loan_with_contributions!(approved_loan.id)
-      contributor_wallet = insert_wallet(build_wallet(%{owner_id: contributor_id}))
+      contributor_wallet = insert_wallet(build_wallet(%{owner_id: contributor_id, amount: 3000}))
 
       ## when
       {:ok, loan} =
@@ -126,11 +126,63 @@ defmodule P2pLoan.LoansTest do
       ## then
       assert loan.status == :ready_to_be_issued
       assert length(Loans.get_loan_with_contributions!(loan.id).contributions) == 1
+      updated_contributor_wallet = Wallets.get_wallet!(contributor_wallet.id)
+      assert updated_contributor_wallet.amount == Decimal.new(2700)
+    end
+
+    test "get_remaining_loan_amount/1 with no contributions" do
+      ## given
+      approved_loan = insert_loan(build_loan(:approved, %{amount: 300, contributions: []}))
+
+      ## when
+      remaining_loan_amount =
+        Loans.get_remaining_loan_amount(Loans.get_loan_with_contributions!(approved_loan.id))
+
+      ## then
+      assert remaining_loan_amount == Decimal.new(300)
+    end
+
+    test "get_remaining_loan_amount/1 with contributions" do
+      ## given
+      approved_loan =
+        insert_loan(
+          build_loan(:issued, %{
+            amount: 300,
+            contributions: [build_contribution(%{amount: 20}), build_contribution(%{amount: 50})]
+          })
+        )
+
+      ## when
+      remaining_loan_amount =
+        Loans.get_remaining_loan_amount(Loans.get_loan_with_contributions!(approved_loan.id))
+
+      ## then
+      assert remaining_loan_amount == Decimal.new(230)
     end
 
     test "issue/1 update the status" do
       ## given
-      ready_to_be_issued_loan = insert_loan_with_contributions(build_loan(:ready_to_be_issued))
+      contributor_1 = unique_uuid()
+      contributor_2 = unique_uuid()
+      contributor_3 = unique_uuid()
+
+      ready_to_be_issued_loan =
+        insert_loan_with_contributions(
+          build_loan(
+            :ready_to_be_issued,
+            %{
+              duration: 3,
+              interest_rate: Decimal.new(20),
+              amount: 100,
+              contributions: [
+                build_contribution(%{contributor_id: contributor_1, amount: 30}),
+                build_contribution(%{contributor_id: contributor_2, amount: 30}),
+                build_contribution(%{contributor_id: contributor_3, amount: 40})
+              ]
+            }
+          )
+        )
+
       ## when
       {:ok, loan} = Loans.issue(ready_to_be_issued_loan)
       ## then
@@ -139,6 +191,28 @@ defmodule P2pLoan.LoansTest do
 
       assert loan_map == ready_to_be_issued_loan_map
       assert loan.status == :issued
+      interest_charges = Loans.get_interest_charges(loan.id)
+      # 120 / 3 = 40 = {12,12,16}
+      assert length(interest_charges) == 9
+
+      first_amount = Decimal.new(12)
+      second_amount = Decimal.new(12)
+      third_amount = Decimal.new(16)
+
+      assert match?(
+               [
+                 %{status: :to_pay, debtor_id: contributor_1, amount: first_amount},
+                 %{status: :to_pay, debtor_id: contributor_1, amount: first_amount},
+                 %{status: :to_pay, debtor_id: contributor_1, amount: first_amount},
+                 %{status: :to_pay, debtor_id: contributor_2, amount: second_amount},
+                 %{status: :to_pay, debtor_id: contributor_2, amount: second_amount},
+                 %{status: :to_pay, debtor_id: contributor_2, amount: second_amount},
+                 %{status: :to_pay, debtor_id: contributor_3, amount: third_amount},
+                 %{status: :to_pay, debtor_id: contributor_3, amount: third_amount},
+                 %{status: :to_pay, debtor_id: contributor_3, amount: third_amount}
+               ],
+               interest_charges
+             )
     end
 
     test "issue/1 fails if loan status is not ready_to_be_issued" do
