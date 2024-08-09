@@ -79,7 +79,7 @@ defmodule P2pLoanWeb.LoanController do
     loan = Loans.get_loan_with_contributions!(id)
     contribution = %Contribution{currency: loan.currency, amount: Decimal.new(contribution_params["contributor_amount"]), contributor_id: contribution_params["contributor_id"]}
     case Loans.create_contribution(contribution, loan) do
-      {:ok, contributor} ->
+      {:ok, _} ->
         conn
         |> put_flash(:info, "Loan contributor added.")
         |> redirect(to: ~p"/loans/#{loan}")

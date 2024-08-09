@@ -1,9 +1,6 @@
 defmodule P2pLoanWeb.GraphQL.Schema do
   use Absinthe.Schema
-  alias P2pLoan.Loans
-  alias P2pLoan.Wallets
 
-  alias P2pLoanWeb.GraphQL.Wallet.WalletResolver
   alias P2pLoanWeb.GraphQL.Middleware.HandleChangesetErrors
 
 

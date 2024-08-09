@@ -41,10 +41,10 @@ defmodule P2pLoanWeb.ContributionController do
     contribution = Loans.get_contribution!(id)
 
     case Loans.update_contribution(contribution, contribution_params) do
-      {:ok, contribution} ->
+      {:ok, _} ->
         conn
         |> put_flash(:info, "Contribution updated successfully.")
-        |> redirect(to: ~p"/contributions/#{contribution}")
+        |> redirect(to: ~p"/loans")
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, contribution: contribution, changeset: changeset)
@@ -57,6 +57,6 @@ defmodule P2pLoanWeb.ContributionController do
 
     conn
     |> put_flash(:info, "Contribution deleted successfully.")
-    |> redirect(to: ~p"/contributions")
+    |> redirect(to: ~p"/loans")
   end
 end

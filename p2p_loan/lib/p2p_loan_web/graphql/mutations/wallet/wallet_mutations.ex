@@ -1,6 +1,6 @@
 defmodule P2pLoan.GraphQL.Wallet.WalletMutations do
   use Absinthe.Schema.Notation
-  alias P2pLoanWeb.GraphQL.Wallet.WalletTypes
+
   alias P2pLoanWeb.GraphQL.Wallet.WalletResolver
 
   object :wallet_mutations do

@@ -19,7 +19,7 @@ defmodule P2pLoanWeb.GraphQL.Loan.LoanTypes do
     end
   end
 
-  def list_contributions_by_loan_id(model, loan_ids) do
+  def list_contributions_by_loan_id(_, loan_ids) do
     contributions = P2pLoan.Loans.list_contributions_by_loan_ids(loan_ids)
     Enum.group_by(contributions, fn contribution -> contribution.loan_id end)
 

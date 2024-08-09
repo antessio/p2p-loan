@@ -1,6 +1,6 @@
 defmodule P2pLoan.GraphQL.Loan.LoanMutations do
   use Absinthe.Schema.Notation
-  alias P2pLoanWeb.GraphQL.Loan.LoanTypes
+
   alias P2pLoanWeb.GraphQL.Loan.LoanResolvers
 
 

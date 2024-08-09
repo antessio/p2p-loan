@@ -5,8 +5,7 @@ defmodule P2pLoan.LoansTest do
   alias P2pLoan.Loans.LoanRequest
 
   describe "loans" do
-    alias P2pLoan.Loans.Loan
-    alias P2pLoan.Wallets.Wallet
+
     alias P2pLoan.Wallets
     alias P2pLoan.Loans.Contribution
 
@@ -75,7 +74,7 @@ defmodule P2pLoan.LoansTest do
 
     test "approve/2 doesn't do anything if loan is already approved" do
       ## given
-      approved_loan = insert_loan(build_loan(:approved))
+      approved_loan = insert_loan(a_loan(%{status: :approved}))
 
       ## when
       ## then
@@ -85,7 +84,7 @@ defmodule P2pLoan.LoansTest do
     test "create_contribution/2 doesn't reach the total amount" do
       ## given
       contributor_id = unique_uuid()
-      approved_loan = insert_loan(build_loan(:approved, %{amount: 300, contributions: []}))
+      approved_loan = insert_loan(a_loan(%{status: :approved, amount: 300, contributions: []}))
       approved_loan = Loans.get_loan_with_contributions!(approved_loan.id)
       contributor_wallet = insert_wallet(build_wallet(%{owner_id: contributor_id, amount: 400}))
 
@@ -109,7 +108,7 @@ defmodule P2pLoan.LoansTest do
     test "create_contribution/2 reaches the total amount" do
       ## given
       contributor_id = unique_uuid()
-      approved_loan = insert_loan(build_loan(:approved, %{amount: 300, contributions: []}))
+      approved_loan = insert_loan(a_loan(%{status: :approved, amount: 300, contributions: []}))
       approved_loan = Loans.get_loan_with_contributions!(approved_loan.id)
       contributor_wallet = insert_wallet(build_wallet(%{owner_id: contributor_id, amount: 3000}))
 
@@ -160,7 +159,7 @@ defmodule P2pLoan.LoansTest do
       assert remaining_loan_amount == Decimal.new(230)
     end
 
-    test "issue/1 update the status" do
+    test "issue/1 update the status and create interest charges" do
       ## given
       contributor_1 = unique_uuid()
       contributor_2 = unique_uuid()
@@ -198,32 +197,168 @@ defmodule P2pLoan.LoansTest do
       first_amount = Decimal.new(12)
       second_amount = Decimal.new(12)
       third_amount = Decimal.new(16)
-
-      assert match?(
-               [
-                 %{status: :to_pay, debtor_id: contributor_1, amount: first_amount},
-                 %{status: :to_pay, debtor_id: contributor_1, amount: first_amount},
-                 %{status: :to_pay, debtor_id: contributor_1, amount: first_amount},
-                 %{status: :to_pay, debtor_id: contributor_2, amount: second_amount},
-                 %{status: :to_pay, debtor_id: contributor_2, amount: second_amount},
-                 %{status: :to_pay, debtor_id: contributor_2, amount: second_amount},
-                 %{status: :to_pay, debtor_id: contributor_3, amount: third_amount},
-                 %{status: :to_pay, debtor_id: contributor_3, amount: third_amount},
-                 %{status: :to_pay, debtor_id: contributor_3, amount: third_amount}
-               ],
-               interest_charges
-             )
+      assert match?([
+        %{status: :to_pay, debtor_id: contributor_1, amount: ^first_amount},
+        %{status: :to_pay, debtor_id: contributor_1, amount: ^first_amount},
+        %{status: :to_pay, debtor_id: contributor_1, amount: ^first_amount},
+        %{status: :to_pay, debtor_id: contributor_2, amount: ^second_amount},
+        %{status: :to_pay, debtor_id: contributor_2, amount: ^second_amount},
+        %{status: :to_pay, debtor_id: contributor_2, amount: ^second_amount},
+        %{status: :to_pay, debtor_id: contributor_3, amount: ^third_amount},
+        %{status: :to_pay, debtor_id: contributor_3, amount: ^third_amount},
+        %{status: :to_pay, debtor_id: contributor_3, amount: ^third_amount}
+      ], interest_charges)
     end
 
     test "issue/1 fails if loan status is not ready_to_be_issued" do
       ## given
-      approved_loan = insert_loan(build_loan(:approved))
+      approved_loan = insert_loan(a_loan(%{status: :approved}))
 
       ## when
       result = Loans.issue(approved_loan)
 
       ## then
       assert {:error, "loan is expected to be ready_to_be_issued but is approved"} == result
+    end
+
+    test "charge_interests/2 updates the wallets" do
+      ## given
+
+      creditor_id_1 = unique_uuid()
+      creditor_id_2 = unique_uuid()
+      loan_owner = unique_uuid()
+      {:ok, now, _} = DateTime.from_iso8601("2024-06-01T00:00:00.000Z")
+
+      yesterday =
+        now
+        |> DateTime.add(-1, :day)
+        |> DateTime.truncate(:second)
+
+      tomorrow =
+        now
+        |> DateTime.add(1, :day)
+        |> DateTime.truncate(:second)
+
+      loan_owner_wallet =
+        insert_wallet(build_wallet(%{owner_id: loan_owner, amount: Decimal.new(500_000)}))
+
+      creditor_wallet_1 = insert_wallet(build_wallet(%{owner_id: creditor_id_1, amount: Decimal.new(1)}))
+      creditor_wallet_2 = insert_wallet(build_wallet(%{owner_id: creditor_id_2, amount: Decimal.new(2)}))
+      issued_loan = %{
+        owner_id: loan_owner,
+        status: :issued,
+        interest_charges: [
+          build_interest_charge(%{
+            status: :to_pay,
+            debtor_id: creditor_id_1,
+            amount: Decimal.new(130),
+            due_date: yesterday
+          }),
+          build_interest_charge(%{
+            status: :to_pay,
+            debtor_id: creditor_id_2,
+            amount: Decimal.new(30),
+            due_date: yesterday
+          }),
+          build_interest_charge(%{
+            status: :to_pay,
+            debtor_id: creditor_id_1,
+            amount: Decimal.new(130),
+            due_date: tomorrow
+          }),
+          build_interest_charge(%{
+            status: :to_pay,
+            debtor_id: creditor_id_2,
+            amount: Decimal.new(30),
+            due_date: tomorrow
+          })
+        ]
+      }
+      |> a_loan()
+      |> insert_loan()
+
+
+      ## when
+      result = Loans.charge_interests(issued_loan.id, now)
+
+      ## then
+      assert result == :ok
+      expected_amount_1 = creditor_wallet_1.amount |> Decimal.add(Decimal.new(130))
+      assert match?(%{amount: ^expected_amount_1},  Wallets.get_wallet_by_owner_id(creditor_id_1))
+      expected_amount_2 = creditor_wallet_2.amount |> Decimal.add(Decimal.new(30))
+      assert match?(%{amount: ^expected_amount_2},  Wallets.get_wallet_by_owner_id(creditor_id_2))
+      expected_amount_debtor = loan_owner_wallet.amount |> Decimal.sub(130) |> Decimal.sub(30)
+      assert match?(%{amount: ^expected_amount_debtor},  Wallets.get_wallet_by_owner_id(loan_owner))
+      assert match?([%{status: :to_pay},%{status: :to_pay}, %{status: :paid}, %{status: :paid}], Loans.get_interest_charges(issued_loan.id))
+    end
+
+    test "charge_interests/2 fails and set the loan status to refused" do
+
+            ## given
+
+            creditor_id_1 = unique_uuid()
+            creditor_id_2 = unique_uuid()
+            loan_owner = unique_uuid()
+            {:ok, now, _} = DateTime.from_iso8601("2024-06-01T00:00:00.000Z")
+
+            yesterday =
+              now
+              |> DateTime.add(-1, :day)
+              |> DateTime.truncate(:second)
+
+            tomorrow =
+              now
+              |> DateTime.add(1, :day)
+              |> DateTime.truncate(:second)
+
+            loan_owner_wallet =
+              insert_wallet(build_wallet(%{owner_id: loan_owner, amount: Decimal.new(3)}))
+
+            creditor_wallet_1 = insert_wallet(build_wallet(%{owner_id: creditor_id_1, amount: Decimal.new(1)}))
+            creditor_wallet_2 = insert_wallet(build_wallet(%{owner_id: creditor_id_2, amount: Decimal.new(2)}))
+            issued_loan = %{
+              owner_id: loan_owner,
+              status: :issued,
+              interest_charges: [
+                build_interest_charge(%{
+                  status: :to_pay,
+                  debtor_id: creditor_id_1,
+                  amount: Decimal.new(130),
+                  due_date: yesterday
+                }),
+                build_interest_charge(%{
+                  status: :to_pay,
+                  debtor_id: creditor_id_2,
+                  amount: Decimal.new(30),
+                  due_date: yesterday
+                }),
+                build_interest_charge(%{
+                  status: :to_pay,
+                  debtor_id: creditor_id_1,
+                  amount: Decimal.new(130),
+                  due_date: tomorrow
+                }),
+                build_interest_charge(%{
+                  status: :to_pay,
+                  debtor_id: creditor_id_2,
+                  amount: Decimal.new(30),
+                  due_date: tomorrow
+                })
+              ]
+            }
+            |> a_loan()
+            |> insert_loan()
+
+
+            ## when
+            result = Loans.charge_interests(issued_loan.id, now)
+
+            ## then
+            assert result == :ok
+            assert creditor_wallet_1 ==  Wallets.get_wallet_by_owner_id(creditor_id_1)
+            assert creditor_wallet_2 == Wallets.get_wallet_by_owner_id(creditor_id_2)
+            assert loan_owner_wallet == Wallets.get_wallet_by_owner_id(loan_owner)
+            assert match?([%{status: :to_pay},%{status: :to_pay}, %{status: :expired}, %{status: :expired}], Loans.get_interest_charges(issued_loan.id))
     end
 
     #   test "create_loan/1 with valid data creates a loan" do
