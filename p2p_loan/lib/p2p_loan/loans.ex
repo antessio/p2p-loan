@@ -250,13 +250,6 @@ defmodule P2pLoan.Loans do
       end
       {:error, msg} -> {:error, msg}
     end
-
-    # {:ok, contribution} =
-    #   loan
-    #   |> Ecto.build_assoc(:contributions, contribution)
-    #   |> Repo.insert()
-
-    # get_loan_with_contributions!(loan.id)
   end
 
   def add_contribution(%Wallet{} = wallet, %Loan{} = loan, %Contribution{} = contribution) do
@@ -502,7 +495,7 @@ defmodule P2pLoan.Loans do
       Loans.get_loan!(loan_id)
       |> Repo.preload(:interest_charges)
 
-    owner_wallet = Wallets.get_wallet_by_owner_id(loan.owner_id)
+    owner_wallet = @wallets_port.get_wallet_by_owner_id(loan.owner_id)
 
     {updated_owner_wallet, interest_charges_to_process} =
       loan.interest_charges
@@ -522,16 +515,12 @@ defmodule P2pLoan.Loans do
         end
       end)
     Repo.transaction(fn ->
-      Wallets.charge(owner_wallet, Decimal.sub(owner_wallet.amount, updated_owner_wallet.amount))
+      # Wallets.charge(owner_wallet, Decimal.sub(owner_wallet.amount, updated_owner_wallet.amount))
       interest_charges_to_process
       |> Enum.each(fn interest_charge ->
         case (case interest_charge do
-                %{valid?: true, changes: %{status: :paid}} ->
-                  Wallets.get_wallet_by_owner_id(interest_charge.data.debtor_id)
-                  |> Wallets.top_up(interest_charge.data.amount)
-
-                _ ->
-                  {:ok, nil}
+                %{valid?: true, changes: %{status: :paid}} -> @wallets_port.move_money(owner_wallet.owner_id, interest_charge.data.debtor_id, interest_charge.data.amount)
+                _ -> {:ok, nil}
               end) do
           {:ok, _} -> Repo.update(interest_charge)
         end
