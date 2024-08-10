@@ -13,6 +13,9 @@ defmodule P2pLoan.Loans do
   alias P2pLoan.Wallets.Wallet
   alias P2pLoan.Loans.InterestCharge
 
+  @wallets_port Application.compile_env!(:p2p_loan, :wallets_port)
+
+
   defmodule LoanRequest do
     @enforce_keys [:owner_id, :amount, :currency, :duration]
     defstruct [:owner_id, :amount, :currency, :duration]
@@ -197,11 +200,10 @@ defmodule P2pLoan.Loans do
   """
   def create_contribution(%Contribution{} = contribution, %Loan{} = loan)
       when loan.status == :approved do
-    wallet = Wallets.get_wallet_by_owner_id(contribution.contributor_id)
-
-    cond do
-      wallet.amount < contribution.amount -> {:error, "#{wallet.owner_id} has not enough money"}
-      true -> add_contribution(wallet, loan, contribution)
+    # wallet = Wallets.get_wallet_by_owner_id(contribution.contributor_id)
+    case @wallets_port.charge(contribution.contributor_id, contribution.amount) do
+      {:ok, _} -> wallet_charged_for_contribution(loan, contribution)
+      {:error, msg} -> {:error, "Can't create contribution #{msg}"}
     end
   end
 
@@ -222,16 +224,39 @@ defmodule P2pLoan.Loans do
 
     loan
   end
+  defp add_contribution_to_loan(
+         %Loan{} = loan,
+         %Contribution{} = contribution,
+         :with_status_update
+       ) do
+    {:ok, loan} =
+      add_contribution_to_loan(loan, contribution)
+      |> Loan.changeset(%{status: :ready_to_be_issued})
+      |> Repo.update()
 
-  defp charge_add_contribution(%Wallet{} = wallet, %Loan{} = loan, %Contribution{} = contribution) do
-    Wallets.charge(wallet, contribution.amount)
+    loan
+  end
 
-    {:ok, contribution} =
-      loan
+  defp add_contribution_to_loan(%Loan{} = loan, %Contribution{} = contribution) do
+    loan
       |> Ecto.build_assoc(:contributions, contribution)
       |> Repo.insert()
+  end
 
-    get_loan_with_contributions!(loan.id)
+  defp charge_add_contribution(%Wallet{} = wallet, %Loan{} = loan, %Contribution{} = contribution) do
+    case Wallets.charge(wallet, contribution.amount) do
+      {:ok, _} -> case add_contribution_to_loan(loan, contribution) do
+        _ -> get_loan_with_contributions!(loan.id)
+      end
+      {:error, msg} -> {:error, msg}
+    end
+
+    # {:ok, contribution} =
+    #   loan
+    #   |> Ecto.build_assoc(:contributions, contribution)
+    #   |> Repo.insert()
+
+    # get_loan_with_contributions!(loan.id)
   end
 
   def add_contribution(%Wallet{} = wallet, %Loan{} = loan, %Contribution{} = contribution) do
@@ -246,6 +271,23 @@ defmodule P2pLoan.Loans do
         t when t > 0 -> charge_add_contribution(wallet, loan, contribution)
         t when t <= 0 -> charge_add_contribution(wallet, loan, contribution, :with_status_update)
       end
+    end)
+  end
+
+  def wallet_charged_for_contribution(%Loan{} = loan, %Contribution{} = contribution) do
+    Repo.transaction(fn ->
+      remaining_loan_amount =
+        get_remaining_loan_amount(loan)
+        |> Decimal.to_float()
+
+      remaining_loan_amount = remaining_loan_amount - Decimal.to_float(contribution.amount)
+      _ = add_contribution_to_loan(loan, contribution)
+      if remaining_loan_amount == 0 do
+        loan
+        |> Loan.changeset(%{status: :ready_to_be_issued})
+        |> Repo.update()
+      end
+      get_loan_with_contributions!(loan.id)
     end)
   end
 

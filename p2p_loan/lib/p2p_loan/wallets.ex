@@ -73,22 +73,30 @@ defmodule P2pLoan.Wallets do
     |> Repo.update()
   end
 
-  def top_up(%Wallet{} = wallet, top_up_amount)do
+  def top_up(%Wallet{} = wallet, top_up_amount) do
     wallet
     |> Wallet.changeset(%{amount: Decimal.add(wallet.amount, top_up_amount)})
-    |> Repo.update
+    |> Repo.update()
   end
 
-  def charge(%Wallet{} = wallet, charge_amount)do
-    wallet
-    |> Wallet.changeset(%{amount: Decimal.sub(wallet.amount, charge_amount)})
-    |> Repo.update
+  def charge(%Wallet{} = wallet, charge_amount) do
+    case Decimal.lt?(
+           wallet.amount,
+           charge_amount
+         ) do
+      true ->
+        {:error, "insufficient funds"}
+
+      false ->
+        wallet
+        |> Wallet.changeset(%{amount: Decimal.sub(wallet.amount, charge_amount)})
+        |> Repo.update()
+    end
   end
 
-  def get_wallet_by_owner_id(owner_id)do
+  def get_wallet_by_owner_id(owner_id) do
     from(w in Wallet, where: w.owner_id == ^owner_id)
-    |> Repo.one
-
+    |> Repo.one()
   end
 
   @doc """
