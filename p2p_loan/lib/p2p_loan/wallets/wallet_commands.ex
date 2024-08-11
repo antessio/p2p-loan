@@ -1,7 +1,7 @@
 defmodule P2pLoan.Wallets.WalletCommands do
   defmodule TopUpCommand do
     use ExConstructor
-    defstruct [:owner_id, :amount, :currency]
+    defstruct [:id, :amount, :currency]
   end
 
   defmodule CreateWalletCommand do

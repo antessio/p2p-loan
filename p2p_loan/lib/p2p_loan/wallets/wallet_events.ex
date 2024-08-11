@@ -7,17 +7,16 @@ defmodule P2pLoan.Wallets.WalletEvents do
 
   defmodule WalletTopUpExecuted do
     @derive Jason.Encoder
-    defstruct [:id]
+    defstruct [:id, :amount]
   end
-
-  defmodule WalletTopUpFailed do
+  defmodule WalletOwnerTopUpExecuted do
     @derive Jason.Encoder
-    defstruct [:id]
+    defstruct [:owner_id, :amount]
   end
 
   defmodule WalletChargeExecuted do
     @derive Jason.Encoder
-    defstruct [:id]
+    defstruct [:id, :amount]
   end
 
   defmodule WalletChargeFailed do

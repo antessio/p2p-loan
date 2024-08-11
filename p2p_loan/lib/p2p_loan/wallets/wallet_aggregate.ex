@@ -6,6 +6,9 @@ defmodule P2pLoan.Wallets.WalletAggregate do
     :currency
   ]
 
+  alias P2pLoan.Wallets.WalletEvents.WalletTopUpExecuted
+
+  alias P2pLoan.Wallets.WalletCommands.TopUpCommand
   alias P2pLoan.Wallets.WalletEvents.WalletCreated
   alias P2pLoan.Wallets.WalletCommands.CreateWalletCommand
   alias P2pLoan.Wallets.WalletAggregate
@@ -38,4 +41,19 @@ defmodule P2pLoan.Wallets.WalletAggregate do
         currency: created.currency
     }
   end
+
+  def execute(%WalletAggregate{}, %TopUpCommand{} = command) do
+    %WalletTopUpExecuted{
+      id: command.id,
+      amount: command.amount
+    }
+  end
+
+  def apply(%WalletAggregate{} = wallet, %WalletTopUpExecuted{} = event) do
+    %WalletAggregate{
+      wallet
+      | amount: Decimal.add(wallet.amount, event.amount)
+    }
+  end
+
 end

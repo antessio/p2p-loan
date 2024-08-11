@@ -4,6 +4,7 @@ defmodule P2pLoan.Wallets do
   """
 
   import Ecto.Query, warn: false
+  alias P2pLoan.Wallets.WalletCommands.TopUpCommand
   alias P2pLoan.Wallets.WalletCommands.CreateWalletCommand
   alias P2pLoan.CommandedApplication
   alias P2pLoan.Repo
@@ -52,14 +53,13 @@ defmodule P2pLoan.Wallets do
 
   """
   def create_wallet(attrs \\ %{}) do
-
-    command = attrs
-    |> CreateWalletCommand.new()
-    |> CreateWalletCommand.assign_id()
+    command =
+      attrs
+      |> CreateWalletCommand.new()
+      |> CreateWalletCommand.assign_id()
 
     CommandedApplication.dispatch(command)
     {:ok, command.id}
-
   end
 
   @doc """
@@ -80,10 +80,36 @@ defmodule P2pLoan.Wallets do
     |> Repo.update()
   end
 
+  def top_up(wallet_id, top_up_amount) when is_binary(wallet_id) do
+
+    wallet = get_wallet!(wallet_id)
+    case dispatch_top_up(wallet, top_up_amount) do
+      :ok -> {:ok, wallet_id}
+      :error -> {:error, "can't top-up the wallet"}
+    end
+  end
+
+  defp dispatch_top_up(%Wallet{} = wallet, _) when is_nil(wallet) do
+    {:error, :no_existing_wallet, "wallet doesn't exist"}
+  end
+
+  defp dispatch_top_up(%Wallet{} = wallet, amount) when not is_nil(wallet) do
+    %{amount: amount, id: wallet.id, currency: wallet.currency}
+    |> TopUpCommand.new()
+    |> CommandedApplication.dispatch()
+  end
+
   def top_up(%Wallet{} = wallet, top_up_amount) do
-    wallet
-    |> Wallet.changeset(%{amount: Decimal.add(wallet.amount, top_up_amount)})
-    |> Repo.update()
+    # wallet
+    # |> Wallet.changeset(%{amount: Decimal.add(wallet.amount, top_up_amount)})
+    # |> Repo.update()
+
+    command =
+      %{amount: Decimal.add(wallet.amount, top_up_amount)}
+      |> TopUpCommand.new()
+
+    CommandedApplication.dispatch(command)
+    {:ok, wallet.id}
   end
 
   def charge(%Wallet{} = wallet, charge_amount) do
