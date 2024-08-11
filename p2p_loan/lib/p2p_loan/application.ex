@@ -5,6 +5,7 @@ defmodule P2pLoan.Application do
 
   use Application
 
+  alias P2pLoan.Wallets.WalletSupervisor
   @impl true
   def start(_type, _args) do
     if Application.get_env(:testcontainers, :enabled, false) do
@@ -19,6 +20,7 @@ defmodule P2pLoan.Application do
     end
 
     children = [
+      WalletSupervisor,
       P2pLoanWeb.Telemetry,
       P2pLoan.Repo,
       {DNSCluster, query: Application.get_env(:p2p_loan, :dns_cluster_query) || :ignore},

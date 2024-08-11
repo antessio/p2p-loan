@@ -4,6 +4,8 @@ defmodule P2pLoan.Wallets do
   """
 
   import Ecto.Query, warn: false
+  alias P2pLoan.Wallets.WalletCommands.CreateWalletCommand
+  alias P2pLoan.CommandedApplication
   alias P2pLoan.Repo
 
   alias P2pLoan.Wallets.Wallet
@@ -50,9 +52,14 @@ defmodule P2pLoan.Wallets do
 
   """
   def create_wallet(attrs \\ %{}) do
-    %Wallet{}
-    |> Wallet.changeset(attrs)
-    |> Repo.insert()
+
+    command = attrs
+    |> CreateWalletCommand.new()
+    |> CreateWalletCommand.assign_id()
+
+    CommandedApplication.dispatch(command)
+    {:ok, command.id}
+
   end
 
   @doc """

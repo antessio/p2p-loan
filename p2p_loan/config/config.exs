@@ -67,3 +67,22 @@ import_config "#{config_env()}.exs"
 
 
 config :p2p_loan, :wallets_port, P2pLoan.LoanWalletsAdapter
+config :p2p_loan, P2pLoan.EventStore, serializer: Commanded.Serialization.JsonSerializer
+
+config :p2p_loan, P2pLoan.EventStore,
+  pool_size: 10,
+  queue_target: 50,
+  queue_interval: 1_000,
+  schema: "commanded"
+
+config :p2p_loan, event_stores: [P2pLoan.EventStore]
+
+config :p2p_loan, P2pLoan.CommandedApplication,
+  event_store: [
+    adapter: Commanded.EventStore.Adapters.EventStore,
+    event_store: P2pLoan.EventStore
+  ],
+  pubsub: :local,
+  registry: :local
+
+config :commanded_ecto_projections, repo: P2pLoan.Repo

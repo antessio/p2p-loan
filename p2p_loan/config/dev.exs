@@ -10,6 +10,14 @@ config :p2p_loan, P2pLoan.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+config :p2p_loan, P2pLoan.EventStore,
+  serializer: EventStore.JsonSerializer,
+  username: "p2ploan",
+  password: "p2ploan_pwd",
+  hostname: "localhost",
+  database: "p2ploandb"
+
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #

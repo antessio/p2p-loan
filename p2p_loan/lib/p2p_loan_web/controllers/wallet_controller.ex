@@ -16,13 +16,10 @@ defmodule P2pLoanWeb.WalletController do
 
   def create(conn, %{"wallet" => wallet_params}) do
     case Wallets.create_wallet(wallet_params) do
-      {:ok, wallet} ->
+      {:ok, wallet_id} ->
         conn
         |> put_flash(:info, "Wallet created successfully.")
-        |> redirect(to: ~p"/wallets/#{wallet}")
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, :new, changeset: changeset)
+        |> redirect(to: ~p"/wallets/#{wallet_id}")
     end
   end
 

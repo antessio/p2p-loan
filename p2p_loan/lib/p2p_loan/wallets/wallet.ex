@@ -19,4 +19,5 @@ defmodule P2pLoan.Wallets.Wallet do
     |> validate_required([:owner_id, :amount, :currency])
     |> unique_constraint(:owner_id)
   end
+
 end
