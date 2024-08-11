@@ -6,7 +6,7 @@ defmodule P2pLoan.GraphQL.Wallet.WalletQueries do
   object :wallet_queries do
     field :get_wallets, list_of(:wallet) do
 
-      resolve &WalletResolver.get_wallets/2
+      resolve &WalletResolver.get_wallets/3
     end
   end
 end

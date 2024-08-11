@@ -1,5 +1,8 @@
 defmodule P2pLoanWeb.Router do
+
   use P2pLoanWeb, :router
+
+  import P2pLoanWeb.UserAuth
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -8,10 +11,12 @@ defmodule P2pLoanWeb.Router do
     plug :put_root_layout, html: {P2pLoanWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :fetch_current_user
   end
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug P2pLoanWeb.Graphql.Plugs.Context
   end
 
   scope "/", P2pLoanWeb do
@@ -20,7 +25,7 @@ defmodule P2pLoanWeb.Router do
   end
 
   scope "/", P2pLoanWeb do
-    pipe_through :browser
+    pipe_through [:browser, :require_admin]
 
     get "/", PageController, :home
     resources "/wallets", WalletController, only: [:create, :delete, :show, :index, :new]
@@ -57,5 +62,35 @@ defmodule P2pLoanWeb.Router do
       live_dashboard "/dashboard", metrics: P2pLoanWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+  end
+  ## public
+  scope "/", P2pLoanWeb do
+    pipe_through :browser
+    get "/users/log_in", UserSessionController, :new
+    get "/users/register", UserRegistrationController, :new
+    post "/users/register", UserRegistrationController, :create
+    post "/users/reset_password", UserResetPasswordController, :create
+    post "/users/log_in", UserSessionController, :create
+    get "/users/reset_password", UserResetPasswordController, :new
+    get "/users/reset_password/:token", UserResetPasswordController, :edit
+    put "/users/reset_password/:token", UserResetPasswordController, :update
+  end
+
+  scope "/", P2pLoanWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    get "/users/settings", UserSettingsController, :edit
+    put "/users/settings", UserSettingsController, :update
+    get "/users/settings/confirm_email/:token", UserSettingsController, :confirm_email
+  end
+
+  scope "/", P2pLoanWeb do
+    pipe_through [:browser]
+
+    delete "/users/log_out", UserSessionController, :delete
+    get "/users/confirm", UserConfirmationController, :new
+    post "/users/confirm", UserConfirmationController, :create
+    get "/users/confirm/:token", UserConfirmationController, :edit
+    post "/users/confirm/:token", UserConfirmationController, :update
   end
 end

@@ -86,3 +86,5 @@ config :p2p_loan, P2pLoan.CommandedApplication,
   registry: :local
 
 config :commanded_ecto_projections, repo: P2pLoan.Repo
+
+config :p2p_loan, :salt, "YF1GKFH#GU#P"

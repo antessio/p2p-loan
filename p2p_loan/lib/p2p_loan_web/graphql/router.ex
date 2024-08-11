@@ -5,7 +5,6 @@ defmodule P2pLoanWeb.GraphQL.Router do
   plug :dispatch
 
 
-
   forward "/graphql",
     to: Absinthe.Plug,
     init_opts: [

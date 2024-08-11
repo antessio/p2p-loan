@@ -3,4 +3,5 @@ defmodule P2pLoan.GraphQL.Types do
 
   import_types P2pLoanWeb.GraphQL.Wallet.WalletTypes
   import_types P2pLoanWeb.GraphQL.Loan.LoanTypes
+  import_types P2pLoanWeb.GraphQL.Account.AccontTypes
 end

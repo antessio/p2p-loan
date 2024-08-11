@@ -9,7 +9,7 @@ defmodule P2pLoan.GraphQL.Wallet.WalletMutations do
       arg :owner_id, non_null(:string)
       arg :currency, non_null(:string)
 
-      resolve &WalletResolver.create_wallet/2
+      resolve &WalletResolver.create_wallet/3
     end
   end
 end

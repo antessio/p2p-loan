@@ -21,6 +21,7 @@ defmodule P2pLoanWeb.GraphQL.Schema do
   mutation do
     import_fields :wallet_mutations
     import_fields :loan_mutations
+    import_fields :account_mutations
   end
 
 

@@ -3,4 +3,5 @@ defmodule P2pLoan.GraphQL.Mutations do
 
   import_types P2pLoan.GraphQL.Wallet.WalletMutations
   import_types P2pLoan.GraphQL.Loan.LoanMutations
+  import_types P2pLoanWeb.Graphql.Mutations.Accounts.UserMutations
 end
