@@ -57,9 +57,12 @@ defmodule P2pLoan.Wallets do
       attrs
       |> CreateWalletCommand.new()
       |> CreateWalletCommand.assign_id()
-
-    CommandedApplication.dispatch(command)
-    {:ok, command.id}
+    case get_wallet_by_owner_id(command.owner_id) do
+      w -> {:ok, w.id}
+      nil -> {CommandedApplication.dispatch(command), command.id}
+    end
+    # CommandedApplication.dispatch(command)
+    # {:ok, command.id}
   end
 
   @doc """

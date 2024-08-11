@@ -7,11 +7,14 @@ defmodule P2pLoanWeb.GraphQL.Wallet.WalletResolver do
 
   def create_wallet(args, _resolution) do
     case Wallets.create_wallet(args) do
-      {:ok, wallet } -> {:ok, wallet}
-      {:error, %Ecto.Changeset{} = changeset} -> {:error, "Changeset error #{P2pLoanWeb.GraphQL.Error.charset_error_to_string(changeset)}"}
-      _ -> {:error, "Unexpected error"}
+      {:ok, wallet_id} ->
+        {:ok, %{id: wallet_id}}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:error, "Changeset error #{P2pLoanWeb.GraphQL.Error.charset_error_to_string(changeset)}"}
+
+      _ ->
+        {:error, "Unexpected error"}
     end
   end
-
-
 end
