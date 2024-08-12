@@ -7,7 +7,7 @@ defmodule P2pLoanWeb.Graphql.Plugs.Context do
 
   def call(conn, _) do
     context = build_context(conn)
-    IO.inspect(context)
+    IO.inspect(context, label: "Context is ")
     # Absinthe.Plug calls Absinthe.run() with the options added to the `conn`.
     Absinthe.Plug.put_options(conn, context: context)
   end

@@ -14,10 +14,12 @@ defmodule P2pLoanWeb.GraphQL.Loan.LoanResolvers do
   def get_requested_loans(_args, _resolver) do
     {:ok, Loans.list_requested_loans()}
   end
-
-  def request_loan(%{owner_id: owner_id, amount: amount, currency: currency, duration: duration}, _resolver) do
-    loan_request = %LoanRequest{owner_id: owner_id, currency: currency, amount: amount, duration: duration}
+  def request_loan(_resolver, %{ amount: amount, currency: currency, duration: duration},  %{context: %{current_user: current_user}}) do
+    loan_request = %LoanRequest{owner_id: current_user.id, currency: currency, amount: amount, duration: duration}
     Loans.request_loan(loan_request)
+  end
+  def request_loan(_resolver, %{ amount: amount, currency: currency, duration: duration}, %{}) do
+    {:error, message: "cannot request a loan, invalid user"}
   end
 
   def approve_loan(%{loan_id: loan_id, interest_rate: interest_rate}, _resolver) do
