@@ -3,6 +3,7 @@ defmodule P2pLoan.LoansFixtures do
   This module defines test helpers for creating
   entities via the `P2pLoan.Loans` context.
   """
+  alias P2pLoan.Wallets
   alias P2pLoan.Loans.Loan
   alias P2pLoan.Wallets.Wallet
   alias P2pLoan.Loans.Contribution
@@ -171,8 +172,10 @@ defmodule P2pLoan.LoansFixtures do
   end
 
   def insert_wallet(%Wallet{} = wallet) do
-    wallet
-    |> P2pLoan.Repo.insert!()
+    {:ok, id} = Wallets.create_wallet(wallet)
+    Wallets.get_wallet!(id)
+    # wallet
+    # |> P2pLoan.Repo.insert!()
   end
 
   @doc """

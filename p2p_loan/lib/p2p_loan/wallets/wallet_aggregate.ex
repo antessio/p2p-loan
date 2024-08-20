@@ -43,6 +43,7 @@ defmodule P2pLoan.Wallets.WalletAggregate do
   end
 
   def execute(%WalletAggregate{}, %TopUpCommand{} = command) do
+    IO.inspect(is_binary(command.amount), label: "doo cameme-up")
     %WalletTopUpExecuted{
       id: command.id,
       amount: command.amount
@@ -50,10 +51,17 @@ defmodule P2pLoan.Wallets.WalletAggregate do
   end
 
   def apply(%WalletAggregate{} = wallet, %WalletTopUpExecuted{} = event) do
+
     %WalletAggregate{
       wallet
-      | amount: Decimal.add(wallet.amount, event.amount)
+      | amount: Decimal.add(wallet.amount, convert_decimal(event.amount))
     }
   end
 
+  defp convert_decimal(amount) when is_binary(amount) do
+    Decimal.new(amount)
+  end
+  defp convert_decimal(amount) do
+    amount
+  end
 end

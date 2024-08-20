@@ -9,6 +9,7 @@ defmodule P2pLoan.CommandedRouter do
 
 
 
-  dispatch([CreateWalletCommand, TopUpCommand], to: WalletAggregate, identity: :id)
+  dispatch([CreateWalletCommand], to: WalletAggregate, identity: :id)
+  dispatch([TopUpCommand], to: WalletAggregate, identity: :id)
 
 end

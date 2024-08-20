@@ -19,9 +19,29 @@ defmodule P2pLoan.Wallets.WalletProjection do
   end)
 
   project(%WalletTopUpExecuted{id: id, amount: amount} = event, _, fn multi ->
-    case Repo.get(Wallet, id) do
-      nil -> multi
-      wallet -> Ecto.Multi.update(multi, :wallet, Wallet.changeset(wallet, %{amount: Decimal.add(wallet.amount, amount)}))
+    wallet = Repo.get(Wallet, id)
+
+    new_amount =
+      IO.inspect(Decimal.add(wallet.amount, convert_decimal(amount)), label: "new amount")
+
+    case wallet do
+      nil ->
+        multi
+
+      w ->
+        Ecto.Multi.update(
+          multi,
+          :wallet,
+          Wallet.changeset(w, %{amount: new_amount})
+        )
     end
   end)
+
+  defp convert_decimal(amount) when is_binary(amount) do
+    Decimal.new(amount)
+  end
+
+  defp convert_decimal(amount) do
+    amount
+  end
 end

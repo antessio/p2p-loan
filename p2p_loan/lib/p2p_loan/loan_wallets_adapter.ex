@@ -13,8 +13,8 @@ defmodule P2pLoan.LoanWalletsAdapter do
 
   @impl true
   def move_money(from_wallet, to_wallet, amount) do
-    case Wallets.charge(from_wallet, amount) do
-      {:ok, _} -> Wallets.top_up(to_wallet, amount)
+    case Wallets.charge(from_wallet, amount)do
+      {:ok, id} -> IO.inspect(Wallets.top_up(to_wallet, amount), label: "top-up")
       {:error, msg} -> {:error, msg}
     end
   end

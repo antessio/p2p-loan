@@ -262,8 +262,6 @@ defmodule P2pLoan.Accounts do
       {:error, :already_confirmed}
     else
       {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
-      IO.inspect(user_token, label: "user token to insert")
-      IO.inspect(user, label: "user")
       Repo.insert!(user_token)
       UserNotifier.deliver_confirmation_instructions(user, confirmation_url_fun.(encoded_token))
     end

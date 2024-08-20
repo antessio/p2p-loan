@@ -21,6 +21,7 @@ config :p2p_loan, P2pLoan.Repo,
 
 config :p2p_loan, P2pLoan.EventStore,
   serializer: EventStore.JsonSerializer,
+  pool: Ecto.Adapters.SQL.Sandbox,
   username: "p2ploan",
   password: "p2ploan_pwd",
   hostname: "localhost",

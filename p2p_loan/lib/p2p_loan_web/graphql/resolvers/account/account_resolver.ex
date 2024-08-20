@@ -6,7 +6,7 @@ defmodule P2pLoanWeb.Graphql.Resolvers.Account.AccountResolver do
     case Accounts.get_user_by_email_and_password(email, password) do
 
       %Accounts.User{} = user ->
-        {:ok, %{token: IO.inspect(Authentication.create(user), label: "user token")}}
+        {:ok, %{token: Authentication.create(user)}}
 
       nil -> {:error, message: "signin failed"}
     end
