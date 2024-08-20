@@ -1,5 +1,5 @@
 defmodule P2pLoan.LoansTest do
-  use P2pLoan.DataCase
+  use ExUnit.Case
 
   alias P2pLoan.Loans
   alias P2pLoan.Loans.LoanRequest
@@ -11,6 +11,12 @@ defmodule P2pLoan.LoansTest do
 
     import P2pLoan.LoansFixtures
     import P2pLoan.TestUtils
+
+    setup do
+      :ok = Ecto.Adapters.SQL.Sandbox.checkout(P2pLoan.Repo)
+      P2pLoan.TestingStorage.reset!()
+      :ok
+    end
 
     test "list_loans/0 returns all loans" do
       ## given

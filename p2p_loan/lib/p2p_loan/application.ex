@@ -8,16 +8,16 @@ defmodule P2pLoan.Application do
   alias P2pLoan.Wallets.WalletSupervisor
   @impl true
   def start(_type, _args) do
-    if Application.get_env(:testcontainers, :enabled, false) do
-      {:ok, _container} = Testcontainers.Ecto.postgres_container(app: :p2p_loan)
+    # if Application.get_env(:testcontainers, :enabled, false) do
+    #   {:ok, _container} = Testcontainers.Ecto.postgres_container(app: :p2p_loan)
 
-      # to use mysql, change
-      # `adapter: Ecto.Adapters.Postgres`
-      # in lib/hello/repo.ex, to
-      # `adapter: Ecto.Adapters.MyXQL`
+    #   # to use mysql, change
+    #   # `adapter: Ecto.Adapters.Postgres`
+    #   # in lib/hello/repo.ex, to
+    #   # `adapter: Ecto.Adapters.MyXQL`
 
-      # {:ok, _container} = Testcontainers.Ecto.mysql_container(app: :hello)
-    end
+    #   # {:ok, _container} = Testcontainers.Ecto.mysql_container(app: :hello)
+    # end
 
     children = [
       WalletSupervisor,

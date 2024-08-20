@@ -9,15 +9,23 @@ config :bcrypt_elixir, :log_rounds, 1
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :testcontainers,
-  enabled: true
+  enabled: false
 
 config :p2p_loan, P2pLoan.Repo,
   username: "p2ploan",
   password: "p2ploan_pwd",
   hostname: "localhost",
-  database: "p2ploandb",
+  database: "p2ploandb_test",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
+
+config :p2p_loan, P2pLoan.EventStore,
+  serializer: EventStore.JsonSerializer,
+  username: "p2ploan",
+  password: "p2ploan_pwd",
+  hostname: "localhost",
+  database: "p2ploandb_test",
+  schema: "commanded"
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
