@@ -4,17 +4,22 @@ defmodule P2pLoan.TestingStorage do
   Clear the event store and read store databases
   """
   def reset! do
-    reset_eventstore()
+    #reset_eventstore()
     reset_readstore()
   end
 
   defp reset_eventstore do
+    # config = P2pLoan.EventStore.config()
+
+    # {:ok, conn} =
+    #   config
+    #   |> EventStore.Config.default_postgrex_opts()
+    #   |> Postgrex.start_link()
+
+    # EventStore.Storage.Initializer.reset!(conn, config)
     config = P2pLoan.EventStore.config()
 
-    {:ok, conn} =
-      config
-      |> EventStore.Config.default_postgrex_opts()
-      |> Postgrex.start_link()
+    {:ok, conn} = Postgrex.start_link(config)
 
     EventStore.Storage.Initializer.reset!(conn, config)
   end

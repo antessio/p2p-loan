@@ -58,7 +58,10 @@ defmodule P2pLoan.Wallets do
       |> CreateWalletCommand.new()
       |> CreateWalletCommand.assign_id()
     case get_wallet_by_owner_id(command.owner_id) do
-      nil -> {CommandedApplication.dispatch(command, consistency: :strong), command.id}
+      nil -> case CommandedApplication.dispatch(command, consistency: :strong) do
+        :ok -> {:ok, command.id}
+        {:error, cause } -> {:error, cause}
+      end
       w -> {:ok, w.id}
     end
     # CommandedApplication.dispatch(command)
@@ -98,7 +101,7 @@ defmodule P2pLoan.Wallets do
   defp dispatch_top_up(%Wallet{} = wallet, amount) when not is_nil(wallet) do
     %{amount: amount, id: wallet.id, currency: wallet.currency}
     |> TopUpCommand.new()
-    |> CommandedApplication.dispatch()
+    |> CommandedApplication.dispatch(consistency: :strong)
   end
 
   def top_up(%Wallet{} = wallet, top_up_amount) do

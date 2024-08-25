@@ -7,7 +7,8 @@ defmodule P2pLoan.Wallets.WalletProjection do
   use Commanded.Projections.Ecto,
     name: "P2pLoan.Projectors.Wallet",
     application: P2pLoan.CommandedApplication,
-    consistency: :strong
+    consistency: :strong,
+    repo: P2pLoan.Repo
 
   project(%WalletCreated{} = wallet_created, _, fn multi ->
     Ecto.Multi.insert(multi, :wallet, %Wallet{
@@ -18,24 +19,30 @@ defmodule P2pLoan.Wallets.WalletProjection do
     })
   end)
 
-  project(%WalletTopUpExecuted{id: id, amount: amount} = event, _, fn multi ->
+  project(%WalletTopUpExecuted{id: id, amount: amount} = event, metadata, fn multi ->
     wallet = Repo.get(Wallet, id)
 
-    new_amount =
-      IO.inspect(Decimal.add(wallet.amount, convert_decimal(amount)), label: "new amount")
-
     case wallet do
-      nil ->
-        multi
-
+      nil -> multi
       w ->
         Ecto.Multi.update(
           multi,
           :wallet,
-          Wallet.changeset(w, %{amount: new_amount})
+          Wallet.changeset(w, %{amount: Decimal.add(wallet.amount, convert_decimal(amount))})
         )
     end
   end)
+
+  # @impl Commanded.Projections.Ecto
+  # def after_update(event, metadata, changes) do
+  #   # Use the event, metadata, or `Ecto.Multi` changes and return `:ok`
+  #   IO.inspect(event, label: "after update event")
+  #   IO.inspect(metadata, label: "after update metadata")
+  #   IO.inspect(changes, label: "after update changes")
+  #   :ok
+  # end
+
+
 
   defp convert_decimal(amount) when is_binary(amount) do
     Decimal.new(amount)

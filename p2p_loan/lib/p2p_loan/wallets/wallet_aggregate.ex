@@ -43,7 +43,6 @@ defmodule P2pLoan.Wallets.WalletAggregate do
   end
 
   def execute(%WalletAggregate{}, %TopUpCommand{} = command) do
-    IO.inspect(is_binary(command.amount), label: "doo cameme-up")
     %WalletTopUpExecuted{
       id: command.id,
       amount: command.amount

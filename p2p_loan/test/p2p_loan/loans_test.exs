@@ -15,12 +15,14 @@ defmodule P2pLoan.LoansTest do
 
     setup do
       # :ok = Ecto.Adapters.SQL.Sandbox.checkout(P2pLoan.Repo)
-      #P2pLoan.TestingStorage.reset!()
+      P2pLoan.TestingStorage.reset!()
+
       case CommandedApplication.start_link() do
         {:ok, _ } -> :ok
         {:error, {:already_started, _}} -> :ok
         _ -> :error
       end
+      :ok
 
     end
 

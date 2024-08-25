@@ -173,6 +173,7 @@ defmodule P2pLoan.LoansFixtures do
 
   def insert_wallet(%Wallet{} = wallet) do
     {:ok, id} = Wallets.create_wallet(wallet)
+
     Wallets.get_wallet!(id)
     # wallet
     # |> P2pLoan.Repo.insert!()

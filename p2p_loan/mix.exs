@@ -84,7 +84,7 @@ defmodule P2pLoan.MixProject do
        # "ecto.setup",
        "assets.setup",
        "assets.build"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs", "event_store.create", "event_store.init"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "event_store.create", "event_store.init", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
