@@ -469,7 +469,7 @@ defmodule P2pLoan.Loans do
       interest_charges_to_process
       |> Enum.each(fn interest_charge ->
         case (case interest_charge do
-                %{valid?: true, changes: %{status: :paid}} -> @wallets_port.move_money(owner_wallet.owner_id, interest_charge.data.debtor_id, interest_charge.data.amount)
+                %{valid?: true, changes: %{status: :paid}} -> @wallets_port.move_money(owner_wallet.owner_id, interest_charge.data.debtor_id, IO.inspect(interest_charge.data, label: "interes charge").amount)
                 _ -> {:ok, nil}
               end) do
           {:ok, _} -> Repo.update(interest_charge)

@@ -13,4 +13,3 @@ interest_charges
     i when i.amount > wallet.amount -> {wallet, [Map.merge(i, %{status: :expired}) | updated_interest_charges]}
   end
   end)
-  |> IO.inspect

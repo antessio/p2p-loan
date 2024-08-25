@@ -58,8 +58,8 @@ defmodule P2pLoan.Wallets do
       |> CreateWalletCommand.new()
       |> CreateWalletCommand.assign_id()
     case get_wallet_by_owner_id(command.owner_id) do
+      nil -> {CommandedApplication.dispatch(command, consistency: :strong), command.id}
       w -> {:ok, w.id}
-      nil -> {CommandedApplication.dispatch(command), command.id}
     end
     # CommandedApplication.dispatch(command)
     # {:ok, command.id}
@@ -84,7 +84,6 @@ defmodule P2pLoan.Wallets do
   end
 
   def top_up(wallet_id, top_up_amount) when is_binary(wallet_id) do
-
     wallet = get_wallet!(wallet_id)
     case dispatch_top_up(wallet, top_up_amount) do
       :ok -> {:ok, wallet_id}
@@ -106,13 +105,10 @@ defmodule P2pLoan.Wallets do
     # wallet
     # |> Wallet.changeset(%{amount: Decimal.add(wallet.amount, top_up_amount)})
     # |> Repo.update()
-
-    command =
-      %{amount: Decimal.add(wallet.amount, top_up_amount)}
-      |> TopUpCommand.new()
-
-    CommandedApplication.dispatch(command)
-    {:ok, wallet.id}
+    case dispatch_top_up(wallet, top_up_amount) do
+      :ok -> {:ok, wallet.id}
+      :error -> {:error, "can't top-up the wallet"}
+    end
   end
 
   def charge(%Wallet{} = wallet, charge_amount) do
