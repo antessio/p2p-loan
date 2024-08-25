@@ -28,7 +28,8 @@ defmodule P2pLoan.DataCase do
   end
 
   setup tags do
-    P2pLoan.DataCase.setup_sandbox(tags)
+    #P2pLoan.DataCase.setup_sandbox(tags)
+    Application.ensure_all_started(:p2p_loan)
     :ok
   end
 
