@@ -13,9 +13,19 @@ defmodule P2pLoanWeb.GraphQL.Wallet.WalletResolver do
     {:error, "cannot see all the wallets"}
   end
 
+  def get_my_wallet(_args, _resolver, %{context: %{current_user: current_user}}) do
+    {:ok, Wallets.get_wallet_by_owner_id(current_user.id)}
+  end
+  def get_my_wallet(_args, _resolver, %{}) do
+    {:error, "forbidden"}
+  end
+
 
   def create_wallet(args, _resolution, %{context: %{current_user: current_user}}) do
-    case Wallets.create_wallet(%{args | owner_id: current_user.id}) do
+    create_wallet_result = args
+    |> Map.put_new(:owner_id, current_user.id)
+    |> Wallets.create_wallet()
+    case create_wallet_result do
       {:ok, wallet_id} ->
         {:ok, %{id: wallet_id}}
 

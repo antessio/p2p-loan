@@ -10,12 +10,14 @@ defmodule P2pLoan.Wallets.WalletProjection do
     consistency: :strong,
     repo: P2pLoan.Repo
 
-  project(%WalletCreated{} = wallet_created, _, fn multi ->
+  project(%WalletCreated{id: id, owner_id: owner_id, currency: currency, amount: amount}, _, fn multi ->
+    amount = amount || Decimal.new(0)
+    currency = currency || "EUR"
     Ecto.Multi.insert(multi, :wallet, %Wallet{
-      id: wallet_created.id,
-      owner_id: wallet_created.owner_id,
-      amount: Decimal.new(wallet_created.amount),
-      currency: wallet_created.currency
+      id: id,
+      owner_id: owner_id,
+      amount: Decimal.new(amount),
+      currency: currency
     })
   end)
 

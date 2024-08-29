@@ -8,5 +8,9 @@ defmodule P2pLoan.GraphQL.Wallet.WalletQueries do
 
       resolve &WalletResolver.get_wallets/3
     end
+
+    field :my_wallet, :wallet do
+      resolve &WalletResolver.get_my_wallet/3
+    end
   end
 end
