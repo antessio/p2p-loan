@@ -21,9 +21,10 @@ defmodule P2pLoanWeb.GraphQL.Wallet.WalletResolver do
   end
 
 
-  def create_wallet(args, _resolution, %{context: %{current_user: current_user}}) do
+  def create_wallet(args, _resolution, _) do
+
     create_wallet_result = args
-    |> Map.put_new(:owner_id, current_user.id)
+    |> Map.put_new(:owner_id, "2c444821-038b-45c2-a19a-a4e349d1aefc")
     |> Wallets.create_wallet()
     case create_wallet_result do
       {:ok, wallet_id} ->

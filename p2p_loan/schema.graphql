@@ -1,0 +1,55 @@
+schema {
+  mutation: RootMutationType
+  query: RootQueryType
+}
+
+type RootQueryType {
+  getWallets: [Wallet]
+  myWallet: Wallet
+  getLoan(id: ID!): Loan
+  getAllLoans: [Loan]
+  getRequestedLoans: [Loan]
+}
+
+type RootMutationType {
+  createWallet(amount: Decimal!, currency: String!): Wallet!
+  loanRequest(amount: Decimal!, currency: String!, duration: Int!): Loan!
+  loanApproval(loanId: ID!, interestRate: Decimal!): Loan!
+  loanContribute(loanId: ID!, contributorId: String!, contributionAmount: Decimal!): Loan!
+  signin(email: String, password: String): Session
+}
+
+type Session {
+  token: String!
+}
+
+type Loan {
+  id: ID!
+  status: String!
+  ownerId: String!
+  amount: Decimal!
+  currency: String!
+  duration: Int!
+  interestRate: Decimal
+  contributions: [Contribution]
+}
+
+type Contribution {
+  currency: String!
+  contributorId: String!
+  amount: Decimal!
+}
+
+type Wallet {
+  id: ID!
+  amount: Decimal!
+  ownerId: String!
+  currency: String!
+}
+
+"""
+The `Decimal` scalar type represents signed double-precision fractional
+values parsed by the `Decimal` library. The Decimal appears in a JSON
+response as a string to preserve precision.
+"""
+scalar Decimal
