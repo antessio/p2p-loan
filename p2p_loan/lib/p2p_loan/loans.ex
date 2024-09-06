@@ -16,8 +16,8 @@ defmodule P2pLoan.Loans do
 
 
   defmodule LoanRequest do
-    @enforce_keys [:owner_id, :amount, :currency, :duration]
-    defstruct [:owner_id, :amount, :currency, :duration]
+    @enforce_keys [:owner_id, :amount, :currency, :duration, :title, :description]
+    defstruct [:owner_id, :amount, :currency, :duration, :title, :description]
   end
 
   @doc """
@@ -85,7 +85,9 @@ defmodule P2pLoan.Loans do
       currency: loan_request.currency,
       amount: loan_request.amount,
       status: :requested,
-      duration: loan_request.duration
+      duration: loan_request.duration,
+      title: loan_request.title,
+      description: loan_request.description
     }
     |> Repo.insert()
   end

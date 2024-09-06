@@ -14,8 +14,8 @@ defmodule P2pLoanWeb.GraphQL.Loan.LoanResolvers do
   def get_requested_loans(_args, _resolver) do
     {:ok, Loans.list_requested_loans()}
   end
-  def request_loan(_resolver, %{ amount: amount, currency: currency, duration: duration},  %{context: %{current_user: current_user}}) do
-    loan_request = %LoanRequest{owner_id: current_user.id, currency: currency, amount: amount, duration: duration}
+  def request_loan(_resolver, %{ amount: amount, currency: currency, duration: duration, title: title, description: description},  %{context: %{current_user: current_user}}) do
+    loan_request = %LoanRequest{owner_id: current_user.id, currency: currency, amount: amount, duration: duration, title: title, description: description}
     Loans.request_loan(loan_request)
   end
   def request_loan(_resolver, %{ amount: amount, currency: currency, duration: duration}, %{}) do

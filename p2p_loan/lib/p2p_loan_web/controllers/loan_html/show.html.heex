@@ -24,7 +24,8 @@
     <% end %>
   </:actions>
 </.header>
-
+<h2><%= @loan.title %></h2>
+<p><%= @loan.description %></p>
 <.list>
   <:item title="Owner"><%= @loan.owner_id %></:item>
   <:item title="Amount"><%= @loan.amount %></:item>

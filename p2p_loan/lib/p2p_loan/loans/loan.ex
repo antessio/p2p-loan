@@ -10,7 +10,8 @@ defmodule P2pLoan.Loans.Loan do
     field :owner_id, Ecto.UUID
     field :amount, :decimal
     field :interest_rate, :decimal
-
+    field :title, :string
+    field :description, :string
     has_many :contributions, P2pLoan.Loans.Contribution
     has_many :interest_charges, P2pLoan.Loans.InterestCharge
 
@@ -21,8 +22,8 @@ defmodule P2pLoan.Loans.Loan do
   @doc false
   def changeset(loan, attrs) do
     loan
-    |> cast(attrs, [:owner_id, :amount, :currency, :interest_rate, :status, :duration])
+    |> cast(attrs, [:owner_id, :amount, :currency, :interest_rate, :status, :duration, :title, :description])
     |> cast_assoc(:contributions)
-    |> validate_required([:owner_id, :amount, :currency, :status, :duration])
+    |> validate_required([:owner_id, :amount, :currency, :status, :duration, :title, :description])
   end
 end

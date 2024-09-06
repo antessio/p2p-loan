@@ -2,6 +2,8 @@
   <.error :if={@changeset.action}>
     Oops, something went wrong! Please check the errors below.
   </.error>
+  <.input field={f[:title]} type="text" label="Loan title" />
+  <.input field={f[:description]} type="text" label="Loan descriptoon" />
   <.input field={f[:owner_id]} type="text" label="Owner" />
   <.input field={f[:amount]} type="number" label="Amount" step="any" />
   <.input field={f[:currency]} type="text" label="Currency" />

@@ -10,6 +10,8 @@ defmodule P2pLoanWeb.GraphQL.Loan.LoanTypes do
     field :currency, non_null(:string)
     field :duration, non_null(:integer)
     field :interest_rate, :decimal
+    field :title, non_null(:string)
+    field :description, non_null(:string)
     field :contributions, list_of(:contribution) do
       resolve fn loan, _args, _resolution ->
         batch({__MODULE__, :list_contributions_by_loan_id, P2pLoan.Loans.Contribution}, loan.id, fn batch_results ->

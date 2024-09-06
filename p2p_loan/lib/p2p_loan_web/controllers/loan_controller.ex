@@ -6,7 +6,6 @@ defmodule P2pLoanWeb.LoanController do
   alias P2pLoan.Loans.Contribution
   alias P2pLoan.Loans.LoanRequest
 
-
   def index(conn, _params) do
     loans = Loans.list_loans()
     render(conn, :index, loans: loans)
@@ -20,7 +19,16 @@ defmodule P2pLoanWeb.LoanController do
   def create(conn, %{"loan" => loan_params}) do
     {duration, _} = Integer.parse(loan_params["duration"])
     amount = Decimal.new(loan_params["amount"])
-    loan_request = %LoanRequest{owner_id: loan_params["owner_id"], currency: loan_params["currency"], amount: amount, duration: duration}
+
+    loan_request = %LoanRequest{
+      owner_id: loan_params["owner_id"],
+      currency: loan_params["currency"],
+      amount: amount,
+      duration: duration,
+      title: loan_params["title"],
+      description: loan_params["description"]
+    }
+
     case Loans.request_loan(loan_request) do
       {:ok, loan} ->
         conn
@@ -57,13 +65,13 @@ defmodule P2pLoanWeb.LoanController do
     end
   end
 
-  def issue(conn, %{"id" => id})do
+  def issue(conn, %{"id" => id}) do
     loan = Loans.get_loan_with_contributions!(id)
     Loans.issue(loan)
 
     conn |> redirect(to: ~p"/loans/#{loan}")
-
   end
+
   def delete(conn, %{"id" => id}) do
     loan = Loans.get_loan!(id)
     {:ok, _loan} = Loans.delete_loan(loan)
@@ -73,19 +81,26 @@ defmodule P2pLoanWeb.LoanController do
     |> redirect(to: ~p"/loans")
   end
 
-
-  def add_contributor(conn, %{"id" => id, "loan" => contribution_params})do
-
+  def add_contributor(conn, %{"id" => id, "loan" => contribution_params}) do
     loan = Loans.get_loan_with_contributions!(id)
-    contribution = %Contribution{currency: loan.currency, amount: Decimal.new(contribution_params["contributor_amount"]), contributor_id: contribution_params["contributor_id"]}
+
+    contribution = %Contribution{
+      currency: loan.currency,
+      amount: Decimal.new(contribution_params["contributor_amount"]),
+      contributor_id: contribution_params["contributor_id"]
+    }
+
     case Loans.create_contribution(contribution, loan) do
       {:ok, _} ->
         conn
         |> put_flash(:info, "Loan contributor added.")
         |> redirect(to: ~p"/loans/#{loan}")
-      {:error, message} -> conn
-      |> put_flash(:error, message)
-      |> redirect(to: ~p"/loans/#{loan}")
+
+      {:error, message} ->
+        conn
+        |> put_flash(:error, message)
+        |> redirect(to: ~p"/loans/#{loan}")
+
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, :edit, loan: loan, changeset: changeset)
     end
@@ -97,7 +112,7 @@ defmodule P2pLoanWeb.LoanController do
     render(conn, :add_contributor, loan: loan, changeset: changeset)
   end
 
-  def delete_contributor(conn, %{"id" => id, "contributor_id" => contributor_id})do
+  def delete_contributor(conn, %{"id" => id, "contributor_id" => contributor_id}) do
     contribution = Loans.get_contribution!(contributor_id)
     {:ok, _} = Loans.delete_contribution(contribution)
 
@@ -117,15 +132,19 @@ defmodule P2pLoanWeb.LoanController do
     render(conn, :interest_charge_processing, loan: loan, changeset: changeset)
   end
 
-  def process_interest_charges(conn, %{"id"=>id, "loan" => %{"target_date" => t}}) do
+  def process_interest_charges(conn, %{"id" => id, "loan" => %{"target_date" => t}}) do
     {:ok, target_date, _} = DateTime.from_iso8601("#{t}T00:00:00Z")
+
     case Loans.charge_interests(id, target_date) do
-      :ok-> conn
-      |> put_flash(:info, "Processed correctly #{target_date}.")
-      |> redirect(to: ~p"/loans/#{id}/interest_charges")
-      :error -> conn
-      |> put_flash(:error, "Error processing #{target_date}.")
-      |> redirect(to: ~p"/loans/#{id}/interest_charges")
+      :ok ->
+        conn
+        |> put_flash(:info, "Processed correctly #{target_date}.")
+        |> redirect(to: ~p"/loans/#{id}/interest_charges")
+
+      :error ->
+        conn
+        |> put_flash(:error, "Error processing #{target_date}.")
+        |> redirect(to: ~p"/loans/#{id}/interest_charges")
     end
   end
 end

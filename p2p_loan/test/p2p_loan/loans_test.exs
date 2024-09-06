@@ -50,7 +50,9 @@ defmodule P2pLoan.LoansTest do
         owner_id: unique_uuid(),
         amount: 300.20,
         duration: 10,
-        currency: "EUR"
+        currency: "EUR",
+        title: "Buy new car",
+        description: "I need a car"
       }
 
       ## when
