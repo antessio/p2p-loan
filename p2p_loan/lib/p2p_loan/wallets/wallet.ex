@@ -8,7 +8,7 @@ defmodule P2pLoan.Wallets.Wallet do
     field :currency, :string
     field :owner_id, Ecto.UUID
     field :amount, :decimal
-
+    has_many :movements, P2pLoan.Wallets.WalletMovement
     timestamps(type: :utc_datetime)
   end
 
@@ -17,6 +17,7 @@ defmodule P2pLoan.Wallets.Wallet do
     wallet
     |> cast(attrs, [:owner_id, :amount, :currency])
     |> validate_required([:owner_id, :amount, :currency])
+    |> cast_assoc(:movements)
     |> unique_constraint(:owner_id)
   end
 

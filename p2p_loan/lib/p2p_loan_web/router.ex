@@ -40,6 +40,8 @@ defmodule P2pLoanWeb.Router do
     get "/loans/:id/interest_charges", LoanController, :get_interest_charges
     put "/wallets/:id/topup", WalletController, :topup
     get "/wallets/:id/editTopUp", WalletController, :editTopup
+    get "/wallets/:id/editCharge", WalletController, :editCharge
+    put "/wallets/:id/charge", WalletController, :charge
   end
 
   # Other scopes may use custom stacks.

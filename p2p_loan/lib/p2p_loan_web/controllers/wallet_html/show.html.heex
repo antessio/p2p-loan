@@ -5,6 +5,9 @@
     <.link href={~p"/wallets/#{@wallet}/editTopUp"}>
       <.button>TopUp wallet</.button>
     </.link>
+    <.link href={~p"/wallets/#{@wallet}/editCharge"}>
+      <.button>Charge wallet</.button>
+    </.link>
   </:actions>
 </.header>
 
@@ -13,5 +16,9 @@
   <:item title="Amount"><%= @wallet.amount %></:item>
   <:item title="Currency"><%= @wallet.currency %></:item>
 </.list>
-
+<.table id="movements" rows={@wallet.movements}>
+  <:col :let={movement} label="ID"><p class="text-red"><%= movement.id %></p></:col>
+  <:col :let={movement} label="Amount" ><%= movement.amount %></:col>
+  
+</.table>
 <.back navigate={~p"/wallets"}>Back to wallets</.back>

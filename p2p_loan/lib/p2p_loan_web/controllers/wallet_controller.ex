@@ -24,7 +24,7 @@ defmodule P2pLoanWeb.WalletController do
   end
 
   def show(conn, %{"id" => id}) do
-    wallet = Wallets.get_wallet!(id)
+    wallet = Wallets.get_wallet_with_movements!(id)
     render(conn, :show, wallet: wallet)
   end
 
@@ -43,6 +43,11 @@ defmodule P2pLoanWeb.WalletController do
     wallet = Wallets.get_wallet!(id)
     changeset = Wallets.change_wallet(wallet)
     render(conn, :topup, wallet: wallet, changeset: changeset)
+  end
+  def editCharge(conn, %{"id" => id}) do
+    wallet = Wallets.get_wallet!(id)
+    changeset = Wallets.change_wallet(wallet)
+    render(conn, :charge, wallet: wallet, changeset: changeset)
   end
 
   def update(conn, %{"id" => id, "wallet" => wallet_params}) do
@@ -68,13 +73,24 @@ defmodule P2pLoanWeb.WalletController do
     |> redirect(to: ~p"/wallets")
   end
 
-  def topup(conn, %{"id" => id, "wallet" => %{"increase" => increase}})do
+  def topup(conn, %{"id" => id, "wallet" => %{"amount_to_apply" => increase}})do
     case Wallets.top_up(id, Decimal.new(increase)) do
     {:ok, wallet_id} -> conn
         |> put_flash(:info, "Wallet topped up successfully.")
         |> redirect(to: ~p"/wallets/#{wallet_id}")
     {:error, error, msg} -> conn
         |> put_flash(:error, "Wallet top-up failed: #{msg}")
+        |> redirect(to: ~p"/wallets/#{id}")
+    end
+  end
+
+  def charge(conn, %{"id" => id, "wallet" => %{"amount_to_apply" => increase}})do
+    case Wallets.charge(id, Decimal.new(increase)) do
+    {:ok, wallet_id} -> conn
+        |> put_flash(:info, "Wallet charged successfully.")
+        |> redirect(to: ~p"/wallets/#{wallet_id}")
+    {:error, _, msg} -> conn
+        |> put_flash(:error, "Wallet charge failed: #{msg}")
         |> redirect(to: ~p"/wallets/#{id}")
     end
   end

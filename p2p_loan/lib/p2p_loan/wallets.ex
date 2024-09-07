@@ -4,6 +4,7 @@ defmodule P2pLoan.Wallets do
   """
 
   import Ecto.Query, warn: false
+  alias P2pLoan.Wallets.WalletCommands.ChargeCommand
   alias P2pLoan.Wallets.WalletCommands.TopUpCommand
   alias P2pLoan.Wallets.WalletCommands.CreateWalletCommand
   alias P2pLoan.CommandedApplication
@@ -40,6 +41,8 @@ defmodule P2pLoan.Wallets do
   """
   def get_wallet!(id), do: Repo.get!(Wallet, id)
 
+  def get_wallet_with_movements!(id), do: Repo.get!(Wallet, id) |> Repo.preload(:movements)
+
   @doc """
   Creates a wallet.
 
@@ -57,13 +60,18 @@ defmodule P2pLoan.Wallets do
       attrs
       |> CreateWalletCommand.new()
       |> CreateWalletCommand.assign_id()
+
     case get_wallet_by_owner_id(command.owner_id) do
-      nil -> case CommandedApplication.dispatch(command, consistency: :strong) do
-        :ok -> {:ok, command.id}
-        {:error, cause } -> {:error, cause}
-      end
-      w -> {:ok, w.id}
+      nil ->
+        case CommandedApplication.dispatch(command, consistency: :strong) do
+          :ok -> {:ok, command.id}
+          {:error, cause} -> {:error, cause}
+        end
+
+      w ->
+        {:ok, w.id}
     end
+
     # CommandedApplication.dispatch(command)
     # {:ok, command.id}
   end
@@ -88,20 +96,22 @@ defmodule P2pLoan.Wallets do
 
   def top_up(wallet_id, top_up_amount) when is_binary(wallet_id) do
     wallet = get_wallet!(wallet_id)
+
     case dispatch_top_up(wallet, top_up_amount) do
       :ok -> {:ok, wallet_id}
       :error -> {:error, "can't top-up the wallet"}
+      {:error, error} -> {:error, dbg(error), "unexpected error"}
     end
-  end
-
-  defp dispatch_top_up(%Wallet{} = wallet, _) when is_nil(wallet) do
-    {:error, :no_existing_wallet, "wallet doesn't exist"}
   end
 
   defp dispatch_top_up(%Wallet{} = wallet, amount) when not is_nil(wallet) do
     %{amount: amount, id: wallet.id, currency: wallet.currency}
     |> TopUpCommand.new()
     |> CommandedApplication.dispatch(consistency: :strong)
+  end
+
+  defp dispatch_top_up(nil, _) do
+    {:error, :no_existing_wallet, "wallet doesn't exist"}
   end
 
   def top_up(%Wallet{} = wallet, top_up_amount) do
@@ -123,10 +133,34 @@ defmodule P2pLoan.Wallets do
         {:error, "insufficient funds"}
 
       false ->
-        wallet
-        |> Wallet.changeset(%{amount: Decimal.sub(wallet.amount, charge_amount)})
-        |> Repo.update()
+        case dispatchCharge(wallet, charge_amount) do
+          :ok -> {:ok, wallet.id}
+          :error -> {:error, "can't top-up the wallet"}
+        end
     end
+  end
+
+  def charge(wallet_id, charge_amount) when is_binary(wallet_id) do
+    wallet = get_wallet!(wallet_id)
+    case Decimal.lt?(
+           wallet.amount,
+           charge_amount
+         ) do
+      true ->
+        {:error, "insufficient funds"}
+
+      false ->
+        case dispatchCharge(wallet, charge_amount) do
+          :ok -> {:ok, wallet.id}
+          :error -> {:error, "can't top-up the wallet"}
+        end
+    end
+  end
+
+  defp dispatchCharge(wallet, amount) do
+    %{amount: amount, id: wallet.id}
+    |> ChargeCommand.new()
+    |> CommandedApplication.dispatch(consistency: :strong)
   end
 
   def get_wallet_by_owner_id(owner_id) do

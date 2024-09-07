@@ -19,7 +19,8 @@ defmodule P2pLoan.Wallets.WalletCommands do
   end
 
   defmodule ChargeCommand do
-    defstruct [:owner_id, :amount, :currency]
+    use ExConstructor
+    defstruct [:id, :amount, :currency]
   end
 
   defmodule MoveMoney do
