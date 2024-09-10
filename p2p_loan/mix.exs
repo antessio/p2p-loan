@@ -67,7 +67,8 @@ defmodule P2pLoan.MixProject do
       {:eventstore, "~> 1.4"},
       {:commanded_eventstore_adapter, "~> 1.2"},
       {:commanded_ecto_projections, "~> 1.4"},
-      {:exconstructor, "~> 1.2"}
+      {:exconstructor, "~> 1.2"},
+      {:uuidv7, "~> 0.2"}
     ]
   end
 

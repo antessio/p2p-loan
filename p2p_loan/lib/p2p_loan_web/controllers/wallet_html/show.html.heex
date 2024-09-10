@@ -17,8 +17,15 @@
   <:item title="Currency"><%= @wallet.currency %></:item>
 </.list>
 <.table id="movements" rows={@wallet.movements}>
-  <:col :let={movement} label="ID"><p class="text-red"><%= movement.id %></p></:col>
+  <:col :let={movement} label="ID"><%= movement.id %></:col>
   <:col :let={movement} label="Amount" ><%= movement.amount %></:col>
-  
+  <:col :let={movement} label="Type">
+  <%= if Decimal.compare(Decimal.new(movement.amount), Decimal.new(0)) == :gt do %>
+    Top-Up
+  <% else %>
+    Charge
+  <% end %>
+  </:col>
+  <:col :let={movement} label="Date"><%= movement.inserted_at %></:col>
 </.table>
 <.back navigate={~p"/wallets"}>Back to wallets</.back>

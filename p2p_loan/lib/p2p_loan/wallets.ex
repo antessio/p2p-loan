@@ -4,6 +4,7 @@ defmodule P2pLoan.Wallets do
   """
 
   import Ecto.Query, warn: false
+  alias P2pLoan.Wallets.WalletMovement
   alias P2pLoan.Wallets.WalletCommands.ChargeCommand
   alias P2pLoan.Wallets.WalletCommands.TopUpCommand
   alias P2pLoan.Wallets.WalletCommands.CreateWalletCommand
@@ -195,5 +196,11 @@ defmodule P2pLoan.Wallets do
   """
   def change_wallet(%Wallet{} = wallet, attrs \\ %{}) do
     Wallet.changeset(wallet, attrs)
+  end
+
+
+  def list_movement_by_wallet_id(wallet_ids) do
+    from(wm in WalletMovement, where: wm.wallet_id in ^wallet_ids)
+    |> Repo.all()
   end
 end

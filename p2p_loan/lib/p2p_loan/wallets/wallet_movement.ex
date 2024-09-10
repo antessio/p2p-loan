@@ -2,7 +2,7 @@ defmodule P2pLoan.Wallets.WalletMovement do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @primary_key {:id, :binary_id, autogenerate: true}
+  @primary_key {:id, UUIDv7, autogenerate: true}
   @foreign_key_type :binary_id
   schema "wallet_movements" do
     field :amount, :decimal
@@ -11,10 +11,11 @@ defmodule P2pLoan.Wallets.WalletMovement do
   end
 
   @doc false
-  def changeset(wallet, attrs) do
-    wallet
+  def changeset(wallet_movement, attrs) do
+    wallet_movement
     |> cast(attrs, [:amount])
     |> validate_required([:amount])
   end
+
 
 end
