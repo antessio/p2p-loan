@@ -6,32 +6,48 @@ Wallet
 - owner id
 - amount
 - currency
-- **~~findWalletByOwnerId~~**
-- **~~topUpWallet~~**
-- **~~chargeWallet~~**
+- movements
+    - amount
+    - date
+- **findWalletByOwnerId**
+- **topUpWallet** (TODO)
+- **chargeWallet**: used internally to charge interests
 
 Loan
-- status: REQUESTED, VERIFICATION, APPROVED, REFUSED, EXPIRED
+- status: 
+    - requested: initial status, the requester submitted the request
+    - approved: an interest rate has been set for the loan and investors can contribute to the loan
+    - ready_to_be_issued: the investors covered the loan amount, the loan can be issued to the requester
+    - issued: the loan amount is given to the requester
+    - refused: the loan can't be approved
+    - expired: one or more interest charges have not been payed
 - amount
 - currency
 - interest rate
 - Contributions
     - amount
     - contributor id
-- **~~findLoansRequested~~**
-- **findContributionsByContributorId**
-- **~~contribute~~**
-- **~~refuseContribution~~**
+- **findLoansRequested** (TODO): used by admin to approve loans
+- **findMyLoans** (TODO)
+- **findMyContributions** (TODO): to get the loans where a user has invested
+- **contribute** (TODO)
+- **refuseContribution** (TODO): to cancel a loan contribution, if the loan is not issued
+- **cancelLoan** (TODO): revert the loan, returns all the contribution to investors
 
 Interested charges
 - debtor id
 - loan_id
 - amount
-- status: PAID, EXPIRED, TO_PAY
-- due at date
-- **createFromLoanApproved**
-- **charge**
-- **findByDueDate**
+- status: 
+    - paid
+    - expired
+    - to_pay
+- due_date
+- **createFromLoanApproved**: not exposed, automatically triggered on loan issuing
+- **charge**: use by admins to trigger the charges of loans' interests
+- **findByDueDate**: not exposed, used by the charging process
+- **getInterestChargesByLoanOwner**
+- **getInterestChargesByLoanId**
 
 
 ## Roles
