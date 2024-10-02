@@ -482,4 +482,9 @@ defmodule P2pLoan.Loans do
     :ok
   end
 
+  def get_loans_by_owner_id(owner_id) do
+    from(l in Loan, where: l.owner_id == ^owner_id)
+    |> Repo.all()
+  end
+
 end

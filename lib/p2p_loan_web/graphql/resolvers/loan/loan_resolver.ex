@@ -3,6 +3,24 @@ defmodule P2pLoanWeb.GraphQL.Loan.LoanResolvers do
   alias P2pLoan.Loans.LoanRequest
   alias P2pLoan.Loans.Contribution
 
+
+  def get_my_loans(_args, _resolver, %{context: %{current_user: current_user}}) do
+    {:ok, Loans.get_loans_by_owner_id(current_user.id)}
+  end
+
+  def get_my_loans(_args, _resolver, %{}) do
+    {:error, "forbidden"}
+  end
+
+
+  def get_loan_contributions(_parent, %{id: id}, %{context: %{current_user: current_user}}) do
+    {:ok, dbg(Loans.get_loan_with_contributions!(id)).contributions}
+  end
+
+  def get_loan_contributions(_args, _resolver, %{}) do
+    {:error, "forbidden"}
+  end
+
   def get_loan(%{id: id}, _resolver) do
     {:ok, Loans.get_loan_with_contributions!(id)}
   end

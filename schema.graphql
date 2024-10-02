@@ -9,6 +9,8 @@ type RootQueryType {
   getLoan(id: ID!): Loan
   getAllLoans: [Loan]
   getRequestedLoans: [Loan]
+  getMyLoans: [Loan]
+  getLoanContributions(id: ID!): [Contribution]
 }
 
 type RootMutationType {
